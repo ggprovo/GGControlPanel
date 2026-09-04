@@ -681,7 +681,35 @@ a#toggleControls {
 
 </style>
 
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyDNzgzv4fxTuo7uki2n1BuHg7BILZ7adeM",
+    authDomain: "controlpanelsync.firebaseapp.com",
+    databaseURL: "https://controlpanelsync-default-rtdb.firebaseio.com/",
+    projectId: "controlpanelsync",
+    storageBucket: "controlpanelsync.firebasestorage.app",
+    messagingSenderId: "440604873856",
+    appId: "1:440604873856:web:a85532506302d8b2e14265",
+    measurementId: "G-QZ7X93Z1PL"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  signInAnonymously(auth)
+    .then(() => {
+      console.log("Firebase connected");
+    })
+    .catch(error => {
+      console.error("Firebase authentication failed:", error);
+    });
+</script>
+  
 <script>
 
 /* =========================================================
