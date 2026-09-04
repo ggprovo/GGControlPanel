@@ -2639,7 +2639,9 @@ window.addEventListener(
 
     }
 );
-
+// Make functions used by inline HTML handlers globally accessible
+window.initPage = initPage;
+window.selectRoom = selectRoom;
 </script>
 
 </head>
