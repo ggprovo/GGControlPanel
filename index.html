@@ -1134,9 +1134,12 @@ const rooms = {
 
 let remoteAudioEnabled = false;
 let remoteAudioUnsubscribe = null;
-let remoteDeviceId =
+
+const remoteDeviceId =
     Math.random().toString(36).substring(2) +
     Date.now().toString(36);
+
+let remoteAudioReady = false;
   
 let currentRoom = null;
 let openedLinks = {};
@@ -1183,18 +1186,21 @@ function updateRemoteAudioUI() {
  * Send an audio-play command to every other
  * computer listening to this room.
  */
-function broadcastAudio(action, soundIndex) {
-    if (!remoteAudioEnabled || !currentRoom) return;
+function broadcastAudio(action, soundIndex, extra = {}) {
 
-    const commandRef = push(
-        ref(db, `remoteAudio/${currentRoom}`)
-    );
+    if (!remoteAudioEnabled || !currentRoom) {
+        return;
+    }
+
+    const commandRef =
+        push(ref(db, `remoteAudio/${currentRoom}`));
 
     set(commandRef, {
         deviceId: remoteDeviceId,
         action: action,
         soundIndex: soundIndex,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        ...extra
     });
 }
 
@@ -1205,61 +1211,54 @@ function broadcastAudio(action, soundIndex) {
  */
 function listenForRemoteAudio(roomKey) {
 
+    // Remove previous listener
     if (remoteAudioUnsubscribe) {
         remoteAudioUnsubscribe();
         remoteAudioUnsubscribe = null;
     }
 
-    const remoteRef = ref(db, `remoteAudio/${roomKey}`);
+    remoteAudioReady = false;
 
-    remoteAudioUnsubscribe = onChildAdded(
-        remoteRef,
-        snapshot => {
+    const remoteRef =
+        ref(db, `remoteAudio/${roomKey}`);
+
+    remoteAudioUnsubscribe =
+        onChildAdded(remoteRef, snapshot => {
 
             const command = snapshot.val();
 
             if (!command) return;
 
-            // Don't react to our own commands
-            if (command.deviceId === remoteDeviceId) return;
-
-            // Only remote-enabled computers respond
-            if (!remoteAudioEnabled) return;
-
-            const audioElements =
-                document.querySelectorAll("#audioPlayer audio");
-
-            const audio =
-                audioElements[command.soundIndex];
-
-            if (!audio) return;
-
-            if (command.action === "play") {
-
-                audio.dataset.remotePlayback = "true";
-                audio.currentTime = 0;
-
-                const playPromise = audio.play();
-
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.error(
-                            "Remote audio could not play:",
-                            error
-                        );
-                    });
-                }
-
-            } else if (command.action === "pause") {
-
-                audio.dataset.remotePlayback = "true";
-                audio.pause();
-                audio.currentTime = 0;
-
+            // Ignore our own commands
+            if (command.deviceId === remoteDeviceId) {
+                return;
             }
 
-        }
-    );
+            // Ignore commands while remote audio is disabled
+            if (!remoteAudioEnabled) {
+                return;
+            }
+
+            /*
+             * Firebase sends existing children immediately
+             * when onChildAdded() is first attached.
+             *
+             * Don't execute those old commands.
+             */
+            if (!remoteAudioReady) {
+                return;
+            }
+
+            handleRemoteAudioCommand(command);
+        });
+
+    /*
+     * Give Firebase a moment to deliver the existing
+     * children before allowing new commands through.
+     */
+    setTimeout(() => {
+        remoteAudioReady = true;
+    }, 500);
 }
 
 
@@ -1269,23 +1268,82 @@ function listenForRemoteAudio(roomKey) {
  * The flag prevents the normal "play" event from
  * broadcasting this audio back to Firebase.
  */
-function playRemoteAudio(audio) {
+function handleRemoteAudioCommand(command) {
 
-    audio.dataset.remotePlayback = "true";
+    // ============================
+    // MUMMY AUDIO
+    // ============================
 
-    audio.currentTime = 0;
+    if (command.type === "mummy") {
 
-    const playPromise = audio.play();
+        if (currentRoom !== "egyptian") {
+            return;
+        }
 
-    if (playPromise !== undefined) {
+        const mummyAudio =
+            new Audio(`mummy${command.mummyNumber}.mp3`);
 
-        playPromise
-            .catch(error => {
-                console.error(
-                    "Remote audio could not play:",
-                    error
-                );
-            });
+        mummyAudio.dataset.remotePlayback = "true";
+
+        mummyAudio.play().catch(error => {
+            console.error(
+                "Remote mummy audio could not play:",
+                error
+            );
+        });
+
+        return;
+    }
+
+
+    // ============================
+    // NORMAL ROOM AUDIO
+    // ============================
+
+    const audioElements =
+        document.querySelectorAll("#audioPlayer audio");
+
+    const audio =
+        audioElements[command.soundIndex];
+
+    if (!audio) {
+        console.warn(
+            "Remote audio not found:",
+            command.soundIndex
+        );
+        return;
+    }
+
+
+    if (command.action === "play") {
+
+        /*
+         * Tell the local event handlers that this
+         * playback came from another computer.
+         */
+        audio.dataset.remotePlayback = "true";
+
+        audio.currentTime = 0;
+
+        audio.play().catch(error => {
+            console.error(
+                "Remote audio could not play:",
+                error
+            );
+        });
+
+    }
+
+
+    else if (command.action === "pause") {
+
+        /*
+         * Prevent this pause from being broadcast back.
+         */
+        audio.dataset.remotePlayback = "true";
+
+        audio.pause();
+        audio.currentTime = 0;
     }
 }
   
@@ -1354,6 +1412,7 @@ function loadAudio(room) {
 
     audioPlayer.innerHTML = "";
 
+
     room.sounds.forEach((sound, index) => {
 
         const item =
@@ -1378,6 +1437,9 @@ function loadAudio(room) {
         audio.dataset.pauses =
             sound.pauses;
 
+        audio.dataset.ignorePause =
+            "false";
+
         audio.dataset.remotePlayback =
             "false";
 
@@ -1388,64 +1450,138 @@ function loadAudio(room) {
 
 
         /*
-         * Stop every other sound when a new
-         * sound starts.
+         * PLAY
          */
+
         audio.addEventListener("play", () => {
-        
-            // Stop every other sound when a new sound starts
+
+            /*
+             * Stop other sounds that should be stopped
+             * when this one starts.
+             */
             document
                 .querySelectorAll("#audioPlayer audio")
                 .forEach(other => {
-        
+
                     if (
                         other !== audio &&
                         other.dataset.pauses === "true"
                     ) {
+
+                        /*
+                         * This pause is caused by
+                         * starting another sound.
+                         *
+                         * Don't broadcast it.
+                         */
+                        other.dataset.ignorePause =
+                            "true";
+
                         other.pause();
                         other.currentTime = 0;
                     }
-        
                 });
-        
-            // If this was triggered by a remote command,
-            // don't send the command back to Firebase.
-            if (audio.dataset.remotePlayback === "true") {
-                audio.dataset.remotePlayback = "false";
-            } else {
-                broadcastAudio("play", index);
+
+
+            /*
+             * REMOTE PLAYBACK
+             */
+
+            if (
+                audio.dataset.remotePlayback === "true"
+            ) {
+
+                audio.dataset.remotePlayback =
+                    "false";
+
             }
-        
-            // Close the corresponding tab
+
+            /*
+             * LOCAL PLAYBACK
+             */
+
+            else {
+
+                broadcastAudio(
+                    "play",
+                    index
+                );
+            }
+
+
+            /*
+             * Close corresponding tab
+             */
+
             if (sound.id !== undefined) {
-                const tab = openedLinks[sound.id];
-        
-                if (tab && !tab.closed) {
+
+                const tab =
+                    openedLinks[sound.id];
+
+                if (
+                    tab &&
+                    !tab.closed
+                ) {
+
                     tab.close();
-                    delete openedLinks[sound.id];
+
+                    delete openedLinks[
+                        sound.id
+                    ];
                 }
             }
+
         });
-        
-        
+
+
+        /*
+         * PAUSE
+         */
+
         audio.addEventListener("pause", () => {
-        
-            // Ignore the pause generated when we stop another
-            // sound because a new sound was started.
-            if (audio.dataset.ignorePause === "true") {
-                audio.dataset.ignorePause = "false";
+
+            /*
+             * Ignore pauses caused by another
+             * audio track starting.
+             */
+            if (
+                audio.dataset.ignorePause ===
+                "true"
+            ) {
+
+                audio.dataset.ignorePause =
+                    "false";
+
                 return;
             }
-        
-            // If this pause came from another computer,
-            // don't send it back to Firebase.
-            if (audio.dataset.remotePlayback === "true") {
-                audio.dataset.remotePlayback = "false";
+
+
+            /*
+             * Ignore pauses caused by a
+             * remote command.
+             */
+            if (
+                audio.dataset.remotePlayback ===
+                "true"
+            ) {
+
+                audio.dataset.remotePlayback =
+                    "false";
+
                 return;
             }
-        
-            broadcastAudio("pause", index);
+
+
+            /*
+             * This was a REAL local pause.
+             */
+            broadcastAudio(
+                "pause",
+                index
+            );
+
         });
+
 
         item.appendChild(caption);
         item.appendChild(audio);
@@ -1453,8 +1589,8 @@ function loadAudio(room) {
         audioPlayer.appendChild(item);
 
     });
-}
 
+}
 /* =========================================================
    PUZZLE SYSTEM
    ========================================================= */
@@ -1472,11 +1608,45 @@ let puzzleCompletionTimes = {};
 let completedDropdownOpen = false;
 
 function playRandomMummy() {
-    const number = Math.floor(Math.random() * 7) + 1;
 
-    const audio = new Audio(`mummy${number}.mp3`);
+    /*
+     * Mummy button only exists for Egyptian,
+     * but keep this guard anyway.
+     */
+    if (currentRoom !== "egyptian") {
+        return;
+    }
 
-    audio.play();
+    const number =
+        Math.floor(Math.random() * 7) + 1;
+
+
+    /*
+     * Play locally
+     */
+    const audio =
+        new Audio(`mummy${number}.mp3`);
+
+    audio.play().catch(error => {
+        console.error(
+            "Mummy audio could not play:",
+            error
+        );
+    });
+
+
+    /*
+     * Broadcast to other Egyptian
+     * remote-enabled computers.
+     */
+    broadcastAudio(
+        "play",
+        null,
+        {
+            type: "mummy",
+            mummyNumber: number
+        }
+    );
 }
 
 /* =========================================================
