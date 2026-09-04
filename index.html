@@ -733,9 +733,10 @@ a#toggleControls {
   import {
     getDatabase,
     ref,
-    push,
     set,
-    onChildAdded
+    push,
+    onChildAdded,
+    onValue
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
@@ -1182,7 +1183,7 @@ function updateRemoteAudioUI() {
  * Send an audio-play command to every other
  * computer listening to this room.
  */
-function broadcastAudio(soundIndex) {
+function broadcastAudio(action, soundIndex) {
     if (!remoteAudioEnabled || !currentRoom) return;
 
     const commandRef = push(
@@ -1191,6 +1192,7 @@ function broadcastAudio(soundIndex) {
 
     set(commandRef, {
         deviceId: remoteDeviceId,
+        action: action,
         soundIndex: soundIndex,
         timestamp: Date.now()
     });
@@ -1203,50 +1205,61 @@ function broadcastAudio(soundIndex) {
  */
 function listenForRemoteAudio(roomKey) {
 
-    // Remove the previous room listener.
     if (remoteAudioUnsubscribe) {
         remoteAudioUnsubscribe();
         remoteAudioUnsubscribe = null;
     }
 
-    const remoteRef =
-        ref(db, `remoteAudio/${roomKey}`);
+    const remoteRef = ref(db, `remoteAudio/${roomKey}`);
 
-    remoteAudioUnsubscribe =
-        onChildAdded(remoteRef, snapshot => {
+    remoteAudioUnsubscribe = onChildAdded(
+        remoteRef,
+        snapshot => {
 
             const command = snapshot.val();
 
             if (!command) return;
 
-            // Don't play our own command.
-            if (command.deviceId === remoteDeviceId) {
-                return;
-            }
+            // Don't react to our own commands
+            if (command.deviceId === remoteDeviceId) return;
 
-            // This computer must have Remote Audio enabled.
-            if (!remoteAudioEnabled) {
-                return;
-            }
+            // Only remote-enabled computers respond
+            if (!remoteAudioEnabled) return;
 
             const audioElements =
-                document.querySelectorAll(
-                    "#audioPlayer audio"
-                );
+                document.querySelectorAll("#audioPlayer audio");
 
             const audio =
                 audioElements[command.soundIndex];
 
-            if (!audio) {
-                console.warn(
-                    "Remote audio not found:",
-                    command.soundIndex
-                );
-                return;
+            if (!audio) return;
+
+            if (command.action === "play") {
+
+                audio.dataset.remotePlayback = "true";
+                audio.currentTime = 0;
+
+                const playPromise = audio.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.error(
+                            "Remote audio could not play:",
+                            error
+                        );
+                    });
+                }
+
+            } else if (command.action === "pause") {
+
+                audio.dataset.remotePlayback = "true";
+                audio.pause();
+                audio.currentTime = 0;
+
             }
 
-            playRemoteAudio(audio);
-        });
+        }
+    );
 }
 
 
@@ -1379,17 +1392,12 @@ function loadAudio(room) {
          * sound starts.
          */
         audio.addEventListener("play", () => {
-
-            /*
-             * Stop sounds that are configured
-             * to be paused by another sound.
-             */
+        
+            // Stop every other sound when a new sound starts
             document
-                .querySelectorAll(
-                    "#audioPlayer audio"
-                )
+                .querySelectorAll("#audioPlayer audio")
                 .forEach(other => {
-
+        
                     if (
                         other !== audio &&
                         other.dataset.pauses === "true"
@@ -1397,51 +1405,47 @@ function loadAudio(room) {
                         other.pause();
                         other.currentTime = 0;
                     }
-
+        
                 });
-
-
-            /*
-             * If this was triggered by a remote
-             * computer, DON'T broadcast it again.
-             */
-            if (
-                audio.dataset.remotePlayback === "true"
-            ) {
-
+        
+            // If this was triggered by a remote command,
+            // don't send the command back to Firebase.
+            if (audio.dataset.remotePlayback === "true") {
                 audio.dataset.remotePlayback = "false";
-
             } else {
-
-                /*
-                 * This was a local user click.
-                 * Broadcast it if Remote Audio
-                 * is enabled.
-                 */
-                broadcastAudio(index);
+                broadcastAudio("play", index);
             }
-
-
-            /*
-             * Close the corresponding tab.
-             */
+        
+            // Close the corresponding tab
             if (sound.id !== undefined) {
-
-                const tab =
-                    openedLinks[sound.id];
-
+                const tab = openedLinks[sound.id];
+        
                 if (tab && !tab.closed) {
-
                     tab.close();
-
-                    delete openedLinks[
-                        sound.id
-                    ];
+                    delete openedLinks[sound.id];
                 }
             }
-
         });
-
+        
+        
+        audio.addEventListener("pause", () => {
+        
+            // Ignore the pause generated when we stop another
+            // sound because a new sound was started.
+            if (audio.dataset.ignorePause === "true") {
+                audio.dataset.ignorePause = "false";
+                return;
+            }
+        
+            // If this pause came from another computer,
+            // don't send it back to Firebase.
+            if (audio.dataset.remotePlayback === "true") {
+                audio.dataset.remotePlayback = "false";
+                return;
+            }
+        
+            broadcastAudio("pause", index);
+        });
 
         item.appendChild(caption);
         item.appendChild(audio);
