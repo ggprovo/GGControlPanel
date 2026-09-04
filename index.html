@@ -730,7 +730,13 @@ a#toggleControls {
   
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+  import {
+    getDatabase,
+    ref,
+    push,
+    set,
+    onChildAdded
+} from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -1177,16 +1183,13 @@ function updateRemoteAudioUI() {
  * computer listening to this room.
  */
 function broadcastAudio(soundIndex) {
-
-    if (!remoteAudioEnabled || !currentRoom) {
-        return;
-    }
+    if (!remoteAudioEnabled || !currentRoom) return;
 
     const commandRef = push(
         ref(db, `remoteAudio/${currentRoom}`)
     );
 
-    commandRef.set({
+    set(commandRef, {
         deviceId: remoteDeviceId,
         soundIndex: soundIndex,
         timestamp: Date.now()
