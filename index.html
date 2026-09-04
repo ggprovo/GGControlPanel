@@ -733,10 +733,11 @@ a#toggleControls {
   import {
     getDatabase,
     ref,
-    set,
     push,
-    onChildAdded,
-    onValue
+    set,
+    get,
+    onValue,
+    onChildAdded
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
@@ -1154,6 +1155,120 @@ var ip2;
 
 let moveInterval = null;
 
+function timerFirebaseRef() {
+    if (!currentRoom) return null;
+
+    return ref(db, `remoteTimer/${currentRoom}`);
+}
+
+
+async function broadcastTimerState(state) {
+    if (!remoteAudioEnabled || !currentRoom) return;
+
+    const timerRef = timerFirebaseRef();
+    if (!timerRef) return;
+
+    await set(timerRef, {
+        state: state,
+        remaining: timerRemaining,
+        speed: timerSpeed,
+        timestamp: Date.now(),
+        deviceId: remoteDeviceId
+    });
+}
+
+
+function getCurrentTimerRemaining(timerData) {
+    if (!timerData) return timerDuration;
+
+    let remaining = Number(timerData.remaining) || 0;
+
+    if (timerData.state === "running") {
+        const elapsed =
+            (Date.now() - Number(timerData.timestamp)) / 1000;
+
+        remaining -= elapsed * (Number(timerData.speed) || 1);
+    }
+
+    return Math.max(0, remaining);
+}
+
+
+async function applyRemoteTimerState(data) {
+    if (!data) return;
+
+    remoteTimerApplying = true;
+
+    timerSpeed = Number(data.speed) || 1;
+
+    timerRemaining = getCurrentTimerRemaining(data);
+
+    if (timerRemaining <= 0) {
+        timerRemaining = 0;
+        pauseTimer();
+    }
+    else if (data.state === "running") {
+        pauseTimer();
+
+        lastTimestamp = null;
+
+        timerInterval =
+            requestAnimationFrame(tick);
+    }
+    else {
+        pauseTimer();
+    }
+
+    updateTimerDisplay();
+
+    remoteTimerApplying = false;
+}
+
+
+async function listenForRemoteTimer(roomKey) {
+
+    if (remoteTimerUnsubscribe) {
+        remoteTimerUnsubscribe();
+        remoteTimerUnsubscribe = null;
+    }
+
+    remoteTimerReady = false;
+
+    const timerRef =
+        ref(db, `remoteTimer/${roomKey}`);
+
+    const snapshot = await get(timerRef);
+
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+
+        // Don't apply our own old state.
+        if (data.deviceId !== remoteDeviceId) {
+            await applyRemoteTimerState(data);
+        }
+    }
+
+    remoteTimerUnsubscribe =
+        onValue(timerRef, async snapshot => {
+
+            if (!snapshot.exists()) return;
+
+            const data = snapshot.val();
+
+            // Ignore our own Firebase updates.
+            if (data.deviceId === remoteDeviceId) {
+                return;
+            }
+
+            if (!remoteAudioEnabled) {
+                return;
+            }
+
+            await applyRemoteTimerState(data);
+        });
+
+    remoteTimerReady = true;
+}
 
 /* =========================================================
    ROOM SELECTION
@@ -1366,6 +1481,7 @@ function selectRoom(roomKey) {
     updateRemoteAudioUI();
     
     listenForRemoteAudio(roomKey);
+    listenForRemoteTimer(roomKey);
 
     document.getElementById("mummyPanel").style.display =
     roomKey === "egyptian" ? "block" : "none";
@@ -3451,6 +3567,9 @@ let timerRemaining = timerDuration;
 let timerInterval = null;
 let timerSpeed = 1;
 let lastTimestamp = null;
+let remoteTimerUnsubscribe = null;
+let remoteTimerApplying = false;
+let remoteTimerReady = false;
 
 
 const timerDisplay =
@@ -3954,23 +4073,24 @@ function startTimer() {
     lastTimestamp = null;
 
     timerInterval =
-        requestAnimationFrame(
-            tick
-        );
+        requestAnimationFrame(tick);
 
+    if (!remoteTimerApplying) {
+        broadcastTimerState("running");
+    }
 }
 
 
 function pauseTimer() {
 
-    cancelAnimationFrame(
-        timerInterval
-    );
+    cancelAnimationFrame(timerInterval);
 
     timerInterval = null;
-
     lastTimestamp = null;
 
+    if (!remoteTimerApplying) {
+        broadcastTimerState("paused");
+    }
 }
 
 
@@ -3978,23 +4098,32 @@ function resetTimer() {
 
     pauseTimer();
 
-    timerRemaining =
-        timerDuration;
+    timerRemaining = timerDuration;
 
     updateTimerDisplay();
 
+    if (!remoteTimerApplying) {
+        broadcastTimerState("reset");
+    }
 }
 
 
 speedSelect.addEventListener(
-    'change',
-    (e) => {
+    "change",
+    e => {
 
         timerSpeed =
-            parseFloat(
-                e.target.value
-            );
+            parseFloat(e.target.value);
 
+        if (!remoteTimerApplying) {
+
+            const state =
+                timerInterval
+                    ? "running"
+                    : "paused";
+
+            broadcastTimerState(state);
+        }
     }
 );
 
