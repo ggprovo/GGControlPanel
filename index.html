@@ -578,6 +578,53 @@ body {
     background: white;
     color: #60A080;
 }
+
+/* =========================================================
+   REMOTE AUDIO
+   ========================================================= */
+
+.remoteOption {
+    margin-bottom: 35px;
+}
+
+.remoteOption label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+#remoteAudioCheckbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #2196ff;
+}
+
+
+/* =========================================================
+   REMOTE AUDIO PANEL GLOW
+   ========================================================= */
+
+#audioPanel.remote-enabled {
+    border: 2px solid #2196ff;
+    border-radius: 12px;
+
+    box-shadow:
+        0 0 5px #2196ff,
+        0 0 15px #2196ff,
+        0 0 30px rgba(33, 150, 255, 0.8);
+
+    transition:
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
   
 /* =========================================================
    OTHER ORIGINAL STYLES
@@ -1078,6 +1125,10 @@ const rooms = {
    CURRENT ROOM
    ========================================================= */
 
+let remoteDeviceId =
+    Math.random().toString(36).substring(2) +
+    Date.now().toString(36);
+  
 let currentRoom = null;
 let openedLinks = {};
 
@@ -1096,6 +1147,130 @@ let moveInterval = null;
    ROOM SELECTION
    ========================================================= */
 
+/* =========================================================
+   REMOTE AUDIO
+   ========================================================= */
+
+function updateRemoteAudioUI() {
+
+    const audioPanel =
+        document.getElementById("audioPanel");
+
+    const checkbox =
+        document.getElementById("remoteAudioCheckbox");
+
+    if (!audioPanel || !checkbox) return;
+
+    remoteAudioEnabled = checkbox.checked;
+
+    audioPanel.classList.toggle(
+        "remote-enabled",
+        remoteAudioEnabled
+    );
+}
+
+
+/*
+ * Send an audio-play command to every other
+ * computer listening to this room.
+ */
+function broadcastAudio(soundIndex) {
+
+    if (!remoteAudioEnabled || !currentRoom) {
+        return;
+    }
+
+    const commandRef = push(
+        ref(db, `remoteAudio/${currentRoom}`)
+    );
+
+    commandRef.set({
+        deviceId: remoteDeviceId,
+        soundIndex: soundIndex,
+        timestamp: Date.now()
+    });
+}
+
+
+/*
+ * Listen for audio commands for the currently
+ * selected room.
+ */
+function listenForRemoteAudio(roomKey) {
+
+    // Remove the previous room listener.
+    if (remoteAudioUnsubscribe) {
+        remoteAudioUnsubscribe();
+        remoteAudioUnsubscribe = null;
+    }
+
+    const remoteRef =
+        ref(db, `remoteAudio/${roomKey}`);
+
+    remoteAudioUnsubscribe =
+        onChildAdded(remoteRef, snapshot => {
+
+            const command = snapshot.val();
+
+            if (!command) return;
+
+            // Don't play our own command.
+            if (command.deviceId === remoteDeviceId) {
+                return;
+            }
+
+            // This computer must have Remote Audio enabled.
+            if (!remoteAudioEnabled) {
+                return;
+            }
+
+            const audioElements =
+                document.querySelectorAll(
+                    "#audioPlayer audio"
+                );
+
+            const audio =
+                audioElements[command.soundIndex];
+
+            if (!audio) {
+                console.warn(
+                    "Remote audio not found:",
+                    command.soundIndex
+                );
+                return;
+            }
+
+            playRemoteAudio(audio);
+        });
+}
+
+
+/*
+ * Plays an audio received from another computer.
+ *
+ * The flag prevents the normal "play" event from
+ * broadcasting this audio back to Firebase.
+ */
+function playRemoteAudio(audio) {
+
+    audio.dataset.remotePlayback = "true";
+
+    audio.currentTime = 0;
+
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+
+        playPromise
+            .catch(error => {
+                console.error(
+                    "Remote audio could not play:",
+                    error
+                );
+            });
+    }
+}
+  
 function selectRoom(roomKey) {
 
     const room = rooms[roomKey];
@@ -1106,6 +1281,15 @@ function selectRoom(roomKey) {
     }
 
     currentRoom = roomKey;
+    
+        remoteAudioEnabled =
+        document.getElementById(
+            "remoteAudioCheckbox"
+        ).checked;
+    
+    updateRemoteAudioUI();
+    
+    listenForRemoteAudio(roomKey);
 
     document.getElementById("mummyPanel").style.display =
     roomKey === "egyptian" ? "block" : "none";
@@ -1169,11 +1353,17 @@ function loadAudio(room) {
 
         const audio =
             document.createElement("audio");
-        
+
         audio.controls = true;
         audio.src = sound.file;
-        audio.dataset.pauses = sound.pauses;
-        
+
+        audio.dataset.pauses =
+            sound.pauses;
+
+        audio.dataset.remotePlayback =
+            "false";
+
+
         if (sound.loop) {
             audio.loop = true;
         }
@@ -1183,30 +1373,68 @@ function loadAudio(room) {
          * Stop every other sound when a new
          * sound starts.
          */
-
         audio.addEventListener("play", () => {
-        
+
+            /*
+             * Stop sounds that are configured
+             * to be paused by another sound.
+             */
             document
-                .querySelectorAll("#audioPlayer audio")
+                .querySelectorAll(
+                    "#audioPlayer audio"
+                )
                 .forEach(other => {
-        
-                    if (other !== audio && other.dataset.pauses === "true") {
+
+                    if (
+                        other !== audio &&
+                        other.dataset.pauses === "true"
+                    ) {
                         other.pause();
                         other.currentTime = 0;
                     }
-        
+
                 });
-        
-            // Close the corresponding tab
+
+
+            /*
+             * If this was triggered by a remote
+             * computer, DON'T broadcast it again.
+             */
+            if (
+                audio.dataset.remotePlayback === "true"
+            ) {
+
+                audio.dataset.remotePlayback = "false";
+
+            } else {
+
+                /*
+                 * This was a local user click.
+                 * Broadcast it if Remote Audio
+                 * is enabled.
+                 */
+                broadcastAudio(index);
+            }
+
+
+            /*
+             * Close the corresponding tab.
+             */
             if (sound.id !== undefined) {
-                const tab = openedLinks[sound.id];
-        
+
+                const tab =
+                    openedLinks[sound.id];
+
                 if (tab && !tab.closed) {
+
                     tab.close();
-                    delete openedLinks[sound.id];
+
+                    delete openedLinks[
+                        sound.id
+                    ];
                 }
             }
-        
+
         });
 
 
@@ -1216,7 +1444,6 @@ function loadAudio(room) {
         audioPlayer.appendChild(item);
 
     });
-
 }
 
 /* =========================================================
@@ -2577,6 +2804,14 @@ function initPage() {
 
     document.getElementById("mummyButton").addEventListener("click", playRandomMummy);
 
+    const remoteCheckbox =
+        document.getElementById("remoteAudioCheckbox");
+    
+    remoteCheckbox.addEventListener(
+        "change",
+        updateRemoteAudioUI
+    );
+  
     initDragging();
 
 }
@@ -2659,6 +2894,13 @@ window.startPtz = startPtz;
 <div id="roomSelection">
 
     <h1>Select Room</h1>
+
+    <div class="remoteOption">
+        <label>
+            <input type="checkbox" id="remoteAudioCheckbox">
+            <span>REMOTE AUDIO</span>
+        </label>
+    </div>
 
     <div class="roomButtons">
 
