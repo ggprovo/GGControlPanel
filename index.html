@@ -1899,50 +1899,6 @@ function checkRoomCompletion() {
             "block";
         }
 }
-
-function submitRoomData() {
-    const submitName = document.getElementById("submitNameInput").value;
-    const finishedTimeString = document.getElementById("finishedTimeInput").value;
-    const selectedOption = document.querySelector('input[name="completionStatus"]:checked').value;
-    document.getElementById("submitPanel").style.display = "none";
-
-    // Build a map of column letters to completion times based on the room configuration
-    const room = rooms[currentRoom];
-    const puzzleColumnData = {};
-
-    room.puzzles.forEach(puzzle => {
-        if (puzzle.column && puzzleCompletionTimes[puzzle.name] !== undefined) {
-            puzzleColumnData[puzzle.column] = puzzleCompletionTimes[puzzle.name];
-        }
-    });
-
-    const payload = {
-        name: submitName || "Anonymous",
-        room: room.name, // Sends "Heist", "Reactor", or "Egyptian"
-        finishedTime: finishedTimeString,
-        status: selectedOption,
-        puzzleColumns: puzzleColumnData // Sends something like { "D": 1820, "E": 1750, ... }
-    };
-
-    // REPLACE THIS URL with your actual Google Apps Script Web App URL
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbxu7gLdoNdFGrmXPeevBAs3sDInXAlj-J-V1TE77HAmQOAKZC9N27IgvKKhkGk4uVvW/exec";
-
-    fetch(webAppUrl, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(() => {
-        console.log("Succesful Submission to Google Sheets");
-    })
-    .catch(error => {
-        console.error("Error submitting data:", error);
-        alert("There was an error saving your data.");
-    });
-}
   
 function completePuzzle(puzzleName) {
 
