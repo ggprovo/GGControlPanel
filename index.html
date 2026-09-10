@@ -550,6 +550,42 @@ body {
   color: #60A080;
 }
 
+#submitContainer button.submitBtn:disabled {
+    background: #555;
+    border-color: #666;
+    color: #aaa;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+#submitContainer button.submitBtn:disabled:hover {
+    background: #555;
+    color: #aaa;
+}
+
+#didNotGetOutReason {
+    display: none;
+    margin-top: 10px;
+}
+
+#didNotGetOutReason textarea {
+    width: 100%;
+    min-height: 75px;
+    resize: vertical;
+    padding: 8px;
+    border: 2px solid #555;
+    border-radius: 6px;
+    background: #222;
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+#didNotGetOutReason textarea:focus {
+    outline: none;
+    border-color: #60A080;
+}
+
 #mummyPanel {
     left: 30px;
     top: 30px;
@@ -1828,11 +1864,40 @@ function checkRoomCompletion() {
         const formattedTime = formatPuzzleTime(timerRemaining);
         
         // Populate the input field so it's ready and editable
-        document.getElementById("finishedTimeInput").value = formattedTime;
-
+        document.getElementById("finishedTimeInput").value =
+            formattedTime;
+        
+        
+        // Reset submit form
+        
+        document.getElementById("submitNameInput").value = "";
+        
+        document.getElementById("didNotGetOutReasonInput").value = "";
+        
+        document.querySelectorAll(
+            'input[name="completionStatus"]'
+        ).forEach(radio => {
+            radio.checked = false;
+        });
+        
+        
+        // Hide the "why didn't they get out?" box
+        
+        document.getElementById("didNotGetOutReason").style.display =
+            "none";
+        
+        
+        // Disable Submit until the form is completed
+        
+        document.getElementById("submitRoomButton").disabled =
+            true;
+        
+        
         // Show the draggable submit panel
-        document.getElementById("submitPanel").style.display = "block";
-    }
+        
+        document.getElementById("submitPanel").style.display =
+            "block";
+        }
 }
 
 function submitRoomData() {
@@ -3169,6 +3234,275 @@ window.addEventListener(
 
     }
 );
+
+/* =========================================================
+   SUBMIT PANEL VALIDATION
+   ========================================================= */
+
+function updateSubmitButton() {
+
+    const nameInput =
+        document.getElementById("submitNameInput");
+
+    const submitButton =
+        document.getElementById("submitRoomButton");
+
+    const selectedOption =
+        document.querySelector(
+            'input[name="completionStatus"]:checked'
+        );
+
+    const reasonBox =
+        document.getElementById("didNotGetOutReason");
+
+    const reasonInput =
+        document.getElementById("didNotGetOutReasonInput");
+
+    if (!nameInput || !submitButton || !reasonBox || !reasonInput) {
+        return;
+    }
+
+    const nameFilled =
+        nameInput.value.trim().length > 0;
+
+    const optionSelected =
+        selectedOption !== null;
+
+    const didNotGetOut =
+        selectedOption &&
+        selectedOption.value === "did_not_get_out";
+
+    /*
+     * Show the reason box only when
+     * "Group did not get out" is selected.
+     */
+
+    reasonBox.style.display =
+        didNotGetOut ? "block" : "none";
+
+    /*
+     * If they selected "did not get out",
+     * they must provide a reason.
+     */
+
+    const reasonFilled =
+        reasonInput.value.trim().length > 0;
+
+    const formIsValid =
+        nameFilled &&
+        optionSelected &&
+        (!didNotGetOut || reasonFilled);
+
+    submitButton.disabled =
+        !formIsValid;
+}
+
+
+/* =========================================================
+   SUBMIT PANEL EVENTS
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const nameInput =
+        document.getElementById("submitNameInput");
+
+    const reasonInput =
+        document.getElementById("didNotGetOutReasonInput");
+
+    const radioButtons =
+        document.querySelectorAll(
+            'input[name="completionStatus"]'
+        );
+
+    if (nameInput) {
+
+        nameInput.addEventListener(
+            "input",
+            updateSubmitButton
+        );
+
+    }
+
+    if (reasonInput) {
+
+        reasonInput.addEventListener(
+            "input",
+            updateSubmitButton
+        );
+
+    }
+
+    radioButtons.forEach(radio => {
+
+        radio.addEventListener(
+            "change",
+            updateSubmitButton
+        );
+
+    });
+
+    /*
+     * Make sure the form starts invalid.
+     */
+
+    updateSubmitButton();
+
+});
+
+
+/* =========================================================
+   SUBMIT ROOM DATA
+   ========================================================= */
+
+function submitRoomData() {
+
+    const submitName =
+        document.getElementById("submitNameInput")
+            .value
+            .trim();
+
+    const finishedTimeString =
+        document.getElementById("finishedTimeInput")
+            .value;
+
+    const selectedRadio =
+        document.querySelector(
+            'input[name="completionStatus"]:checked'
+        );
+
+    /*
+     * Safety check — don't submit if the form
+     * isn't complete.
+     */
+
+    if (!submitName || !selectedRadio) {
+        return;
+    }
+
+    const selectedOption =
+        selectedRadio.value;
+
+    const reasonInput =
+        document.getElementById("didNotGetOutReasonInput");
+
+    const didNotGetOut =
+        selectedOption === "did_not_get_out";
+
+    const reason =
+        reasonInput
+            ? reasonInput.value.trim()
+            : "";
+
+    /*
+     * If "Group did not get out" was selected,
+     * a reason is required.
+     */
+
+    if (didNotGetOut && !reason) {
+        return;
+    }
+
+    /*
+     * Hide the submit panel.
+     */
+
+    document.getElementById("submitPanel").style.display =
+        "none";
+
+
+    // Build a map of column letters to completion times
+    const room = rooms[currentRoom];
+
+    const puzzleColumnData = {};
+
+    room.puzzles.forEach(puzzle => {
+
+        if (
+            puzzle.column &&
+            puzzleCompletionTimes[puzzle.name] !== undefined
+        ) {
+
+            puzzleColumnData[puzzle.column] =
+                puzzleCompletionTimes[puzzle.name];
+
+        }
+
+    });
+
+
+    /*
+     * For the "did not get out" option:
+     *
+     * Send the user's written explanation instead
+     * of the normal status ID.
+     *
+     * For all other options:
+     * send their existing status ID.
+     */
+
+    const statusToSend =
+        didNotGetOut
+            ? reason
+            : selectedOption;
+
+
+    const payload = {
+
+        name: submitName,
+
+        room: room.name,
+
+        finishedTime: finishedTimeString,
+
+        status: statusToSend,
+
+        puzzleColumns: puzzleColumnData
+
+    };
+
+
+    // Google Apps Script Web App URL
+    const webAppUrl =
+        "https://script.google.com/macros/s/AKfycbxu7gLdoNdFGrmXPeevBAs3sDInXAlj-J-V1TE77HAmQOAKZC9N27IgvKKhkGk4uVvW/exec";
+
+
+    fetch(webAppUrl, {
+
+        method: "POST",
+
+        mode: "no-cors",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(payload)
+
+    })
+
+    .then(() => {
+
+        console.log(
+            "Successful Submission to Google Sheets"
+        );
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            "Error submitting data:",
+            error
+        );
+
+        alert(
+            "There was an error saving your data."
+        );
+
+    });
+
+}
 // Make functions used by inline HTML handlers globally accessible
 window.initPage = initPage;
 window.selectRoom = selectRoom;
@@ -3533,13 +3867,49 @@ window.submitRoomData = submitRoomData;
             </div>
 
             <div class="radioGroup">
-                <label><input type="radio" name="completionStatus" value="no_help" checked> Group got out with no help</label>
-                <label><input type="radio" name="completionStatus" value="with_help"> Group got out with help</label>
-                <label><input type="radio" name="completionStatus" value="would_not_without_help"> Group wouldn't have gotten out without help</label>
-                <label><input type="radio" name="completionStatus" value="did_not_get_out"> Group did not get out</label>
+            
+                <label>
+                    <input type="radio" name="completionStatus" value="no_help">
+                    Group got out with no help
+                </label>
+            
+                <label>
+                    <input type="radio" name="completionStatus" value="with_help">
+                    Group got out with help
+                </label>
+            
+                <label>
+                    <input type="radio" name="completionStatus" value="would_not_without_help">
+                    Group wouldn't have gotten out without help
+                </label>
+            
+                <label>
+                    <input type="radio" name="completionStatus" value="did_not_get_out">
+                    Group did not get out
+                </label>
+            
+                <div id="didNotGetOutReason">
+                    <label for="didNotGetOutReasonInput">
+                        Why didn't the group get out?
+                    </label>
+            
+                    <textarea
+                        id="didNotGetOutReasonInput"
+                        placeholder="Enter the reason..."
+                    ></textarea>
+                </div>
+            
             </div>
-
-            <button class="submitBtn" onclick="submitRoomData()">Submit</button>
+            
+            <button
+                type="button"
+                class="submitBtn"
+                id="submitRoomButton"
+                onclick="submitRoomData()"
+                disabled
+            >
+                Submit
+            </button>
 
         </div>
 
