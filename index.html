@@ -1839,6 +1839,7 @@ function submitRoomData() {
     const submitName = document.getElementById("submitNameInput").value;
     const finishedTimeString = document.getElementById("finishedTimeInput").value;
     const selectedOption = document.querySelector('input[name="completionStatus"]:checked').value;
+    document.getElementById("submitPanel").style.display = "none";
 
     // Build a map of column letters to completion times based on the room configuration
     const room = rooms[currentRoom];
@@ -1870,8 +1871,7 @@ function submitRoomData() {
         body: JSON.stringify(payload)
     })
     .then(() => {
-        alert("Successfully submitted to Google Sheets!");
-        document.getElementById("submitPanel").style.display = "none";
+        console.log("Succesful Submission to Google Sheets");
     })
     .catch(error => {
         console.error("Error submitting data:", error);
@@ -3179,6 +3179,7 @@ window.getCurrentTimerRemaining = getCurrentTimerRemaining;
 window.applyRemoteTimerState = applyRemoteTimerState;
 window.listenForRemoteTimer = listenForRemoteTimer;
 window.toggleCompletedPuzzles = toggleCompletedPuzzles;
+window.submitRoomData = submitRoomData;
 </script>
 
 </head>
