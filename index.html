@@ -1583,6 +1583,10 @@ function handleRemoteAudioCommand(command) {
     }
 }
   
+/* =========================================================
+   ROOM SELECTION
+   ========================================================= */
+
 function selectRoom(roomKey) {
 
     const room = rooms[roomKey];
@@ -1594,6 +1598,15 @@ function selectRoom(roomKey) {
 
     currentRoom = roomKey;
     const isMobile = isMobileDevice();
+
+    /* 1. CLEAR PREVIOUS REMOTE AUDIO COMMANDS FOR THIS ROOM */
+    if (typeof firebase !== "undefined" && firebase.database) {
+        // Option A: If using Firebase Database, set the room's audio node to null/empty
+        firebase.database().ref(`rooms/${roomKey}/lastAudioCommand`).set(null);
+    } else if (typeof socket !== "undefined") {
+        // Option B: If using WebSockets, emit a clear command
+        socket.emit("clearRoomCommand", { roomKey });
+    }
 
     const remoteCheckbox = document.getElementById("remoteAudioCheckbox");
     if (isMobile && remoteCheckbox) {
@@ -1636,7 +1649,6 @@ function selectRoom(roomKey) {
         document.getElementById("puzzlePanel").style.display = "none";
         document.getElementById("submitPanel").style.display = "none";
 
-        // Mummy panel displays only if in Egyptian room
         document.getElementById("mummyPanel").style.display =
             roomKey === "egyptian" ? "block" : "none";
     } else {
@@ -1646,7 +1658,6 @@ function selectRoom(roomKey) {
         startViewer();
     }
 }
-
 
 /* =========================================================
    AUDIO
@@ -1821,7 +1832,10 @@ function loadAudio(room) {
 
             /*
              * This was a REAL local pause.
+             * Reset track position to beginning.
              */
+            audio.currentTime = 0;
+
             broadcastAudio(
                 "pause",
                 index
