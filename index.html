@@ -762,6 +762,40 @@ a#toggleControls {
 
 }
 
+/* =========================================================
+   MOBILE / SMALL SCREEN
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  /* Stack room buttons vertically */
+  .roomButtons {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .roomButton {
+    width: 260px;
+    height: 90px;
+  }
+
+  /* Make panels adapt to mobile screens */
+  .draggablePanel {
+    position: relative !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 90vw !important;
+    margin: 15px auto;
+  }
+
+  #audioPlayer {
+    max-height: 60vh;
+  }
+}
+
 </style>
   
 <script type="module">
@@ -799,7 +833,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.1");
+console.log("GGControlPanel 2.2");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
@@ -1508,48 +1542,59 @@ function selectRoom(roomKey) {
     }
 
     currentRoom = roomKey;
+    const isMobile = window.innerWidth <= 768;
+
+    /* On mobile, automatically enable remote mode */
+    const remoteCheckbox = document.getElementById("remoteAudioCheckbox");
+    if (isMobile && remoteCheckbox) {
+        remoteCheckbox.checked = true;
+    }
     
-        remoteAudioEnabled =
-        document.getElementById(
-            "remoteAudioCheckbox"
-        ).checked;
+    remoteAudioEnabled = remoteCheckbox.checked;
     
     updateRemoteAudioUI();
     
     listenForRemoteAudio(roomKey);
     listenForRemoteTimer(roomKey);
 
-    document.getElementById("mummyPanel").style.display =
-    roomKey === "egyptian" ? "block" : "none";
-
-    // Open all room links in new tabs
+    /* Open links ONLY if NOT on mobile */
     openedLinks = {};
-
-    room.links.forEach(link => {
-        const tab = window.open(link.link, "_blank");
-
-        if (link.id !== undefined) {
-            openedLinks[link.id] = tab;
-        }
-    });
+    if (!isMobile) {
+        room.links.forEach(link => {
+            const tab = window.open(link.link, "_blank");
+            if (link.id !== undefined) {
+                openedLinks[link.id] = tab;
+            }
+        });
+    }
 
     ip1 = room.ip1;
     ip2 = room.ip2;
 
-    console.log("Selected room:", room.name);
-    console.log("Camera 1:", ip1);
-    console.log("Camera 2:", ip2);
-
     document.getElementById("roomSelection").style.display = "none";
     document.getElementById("controller").style.display = "block";
 
-    document.body.style.backgroundImage =
-        `url("${room.background}")`;
+    document.body.style.backgroundImage = `url("${room.background}")`;
 
     loadAudio(room);
 
-    resetPuzzles();
-    startViewer();
+    /* If on mobile, hide all non-essential panels */
+    if (isMobile) {
+        document.getElementById("timerPanel").style.display = "none";
+        document.getElementById("cameraPanel1").style.display = "none";
+        document.getElementById("cameraPanel2").style.display = "none";
+        document.getElementById("puzzlePanel").style.display = "none";
+        document.getElementById("submitPanel").style.display = "none";
+
+        // Mummy panel displays only if in Egyptian room
+        document.getElementById("mummyPanel").style.display =
+            roomKey === "egyptian" ? "block" : "none";
+    } else {
+        document.getElementById("mummyPanel").style.display =
+            roomKey === "egyptian" ? "block" : "none";
+        resetPuzzles();
+        startViewer();
+    }
 }
 
 
@@ -3109,27 +3154,23 @@ function initDragging() {
 
 function initPage() {
 
-    document.getElementById(
-        "roomSelection"
-    ).style.display = "flex";
+    const isMobile = window.innerWidth <= 768;
+    const remoteLabel = document.getElementById("remoteAudioLabel");
 
+    if (isMobile && remoteLabel) {
+        remoteLabel.textContent = "MOBILE MODE";
+    }
 
-    document.getElementById(
-        "controller"
-    ).style.display = "none";
+    document.getElementById("roomSelection").style.display = "flex";
+    document.getElementById("controller").style.display = "none";
 
     document.getElementById("mummyButton").addEventListener("click", playRandomMummy);
 
-    const remoteCheckbox =
-        document.getElementById("remoteAudioCheckbox");
+    const remoteCheckbox = document.getElementById("remoteAudioCheckbox");
     
-    remoteCheckbox.addEventListener(
-        "change",
-        updateRemoteAudioUI
-    );
+    remoteCheckbox.addEventListener("change", updateRemoteAudioUI);
   
     initDragging();
-
 }
 
 
@@ -3491,7 +3532,7 @@ window.submitRoomData = submitRoomData;
     <div class="remoteOption">
         <label>
             <input type="checkbox" id="remoteAudioCheckbox">
-            <span>REMOTE AUDIO</span>
+            <span id="remoteAudioLabel">REMOTE AUDIO</span>
         </label>
     </div>
 
