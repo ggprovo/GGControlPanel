@@ -749,11 +749,41 @@ a#toggleControls {
 
 @media (max-width: 1024px) {
 
-  /* ---------------------------------------------------------
-     ROOM SELECTION
-     --------------------------------------------------------- */
+  /* =========================================================
+     MOBILE PAGE SCROLLING
+     ========================================================= */
 
-  /* Stack room selection buttons vertically */
+  html,
+  body {
+    width: 100% !important;
+    min-height: 100% !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+
+  /* The controller must be allowed to become taller
+     than the phone's viewport */
+  #controller {
+    position: absolute !important;
+
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 100% !important;
+
+    min-height: 100vh !important;
+    height: auto !important;
+
+    overflow: visible !important;
+  }
+
+
+  /* =========================================================
+     ROOM SELECTION
+     ========================================================= */
+
   .roomButtons {
     flex-direction: column !important;
     align-items: center !important;
@@ -766,33 +796,33 @@ a#toggleControls {
   }
 
 
-  /* ---------------------------------------------------------
-     REMOTE AUDIO / MOBILE MODE
-     --------------------------------------------------------- */
+  /* =========================================================
+     MOBILE MODE
+     ========================================================= */
 
-  /* Hide the remote audio checkbox on mobile */
   .remoteOption input[type="checkbox"] {
     display: none !important;
   }
 
 
-  /* ---------------------------------------------------------
+  /* =========================================================
      PANELS
-     --------------------------------------------------------- */
+     ========================================================= */
 
-  /* Force draggable panels into natural static layout */
   .draggablePanel {
     position: relative !important;
-    left: 0 !important;
-    top: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
+
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
 
     width: 92vw !important;
 
     margin: 15px auto !important;
 
     height: auto !important;
+    min-height: 0 !important;
     max-height: none !important;
 
     overflow: visible !important;
@@ -801,16 +831,17 @@ a#toggleControls {
   }
 
 
-  /* ---------------------------------------------------------
-     PANEL HEADERS / HANDLES
-     --------------------------------------------------------- */
+  /* =========================================================
+     PANEL HEADERS
+     ========================================================= */
 
-  /* Make AUDIO CONTROLS and MUMMY BUTTON handles
-     larger on mobile */
   .draggablePanel .dragHandle {
     font-size: 1.8rem !important;
+
     padding: 14px 10px !important;
+
     line-height: 1.3 !important;
+
     font-weight: bold !important;
 
     min-height: 60px !important;
@@ -821,35 +852,43 @@ a#toggleControls {
   }
 
 
-  /* ---------------------------------------------------------
+  /* =========================================================
      AUDIO PANEL
-     --------------------------------------------------------- */
+     ========================================================= */
 
-  /* Allow audio player to expand without scroll bounds */
-  #audioPlayer {
-    max-height: none !important;
+  #audioPanel {
+    width: 92vw !important;
+
     height: auto !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+  }
+
+  #audioPlayer {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
 
     overflow: visible !important;
 
-    padding: 15px 10px !important;
+    padding: 15px 10px 30px 10px !important;
   }
 
 
-  /* Audio item containers */
   .audioItem {
     width: 100% !important;
 
     height: auto !important;
-    min-height: 120px !important;
+    min-height: 0 !important;
 
     padding: 15px 10px 25px 10px !important;
 
     margin-bottom: 25px !important;
 
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
+    display: block !important;
 
     box-sizing: border-box !important;
 
@@ -857,64 +896,53 @@ a#toggleControls {
   }
 
 
-  /* Enlarge audio track names */
-  .audioItem figcaption,
-  .audioItem caption,
-  .audioItem label,
-  figcaption {
+  .audioItem:last-child {
+    margin-bottom: 0 !important;
+  }
+
+
+  /* Audio names */
+
+  .audioItem figcaption {
     font-size: 2.4rem !important;
+
     font-weight: bold !important;
+
     line-height: 1.4 !important;
+
+    margin-bottom: 10px !important;
 
     word-break: break-word !important;
   }
 
 
-  /* Expand native audio controls */
-  .audioItem audio,
-  #audioPlayer audio {
-      width: 100% !important;
-      min-width: 100% !important;
-      max-width: 100% !important;
-  
-      height: 52px !important;
-  
-      margin-top: 10px !important;
-      margin-bottom: 10px !important;
-  
-      display: block !important;
-  
-      box-sizing: border-box !important;
+  /* Actual audio player */
+
+  .audioItem audio {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    height: 52px !important;
+
+    margin: 10px 0 !important;
   }
 
 
-  /* ---------------------------------------------------------
-     AUDIO BUTTONS
-     --------------------------------------------------------- */
-
-  /* Enlarge custom Play / Pause / Stop buttons */
-  .audio-item button,
-  .play-btn,
-  .stop-btn,
-  .control-btn {
-    min-width: 60px !important;
-    min-height: 60px !important;
-
-    font-size: 1.6rem !important;
-
-    padding: 10px !important;
-
-    border-radius: 8px !important;
-  }
-
-
-  /* ---------------------------------------------------------
+  /* =========================================================
      MUMMY PANEL
-     --------------------------------------------------------- */
+     ========================================================= */
 
-  /* Taller Mummy button */
+  #mummyPanel {
+    width: 92vw !important;
+
+    height: auto !important;
+  }
+
+
   #mummyPanel button,
-  .mummy-btn {
+  #mummyButton {
     display: block !important;
 
     width: 100% !important;
@@ -922,23 +950,24 @@ a#toggleControls {
     min-height: 70px !important;
 
     font-size: 1.6rem !important;
+
     font-weight: bold !important;
 
     margin: 12px 0 !important;
+
     padding: 10px !important;
 
     border-radius: 10px !important;
   }
 
 
-  /* ---------------------------------------------------------
+  /* =========================================================
      AUDIO SLIDERS
-     --------------------------------------------------------- */
+     ========================================================= */
 
-  /* Make range sliders easier to use on touch screens */
   .audioItem input[type="range"] {
-    height: 28px !important;
     width: 100% !important;
+    height: 28px !important;
   }
 }
 </style>
@@ -979,7 +1008,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.11");
+console.log("GGControlPanel 2.13");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
