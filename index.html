@@ -877,7 +877,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.4");
+console.log("GGControlPanel 2.5");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
@@ -1453,13 +1453,12 @@ function listenForRemoteAudio(roomKey) {
         remoteAudioUnsubscribe = null;
     }
 
-    remoteAudioReady = false;
+    const remoteRef = ref(db, `remoteAudio/${roomKey}`);
 
-    const remoteRef =
-        ref(db, `remoteAudio/${roomKey}`);
-
-    remoteAudioUnsubscribe =
-        onChildAdded(remoteRef, snapshot => {
+    // Clean up node first, then attach onChildAdded
+    remove(remoteRef).then(() => {
+        
+        remoteAudioUnsubscribe = onChildAdded(remoteRef, snapshot => {
 
             const command = snapshot.val();
 
@@ -1475,26 +1474,12 @@ function listenForRemoteAudio(roomKey) {
                 return;
             }
 
-            /*
-             * Firebase sends existing children immediately
-             * when onChildAdded() is first attached.
-             *
-             * Don't execute those old commands.
-             */
-            if (!remoteAudioReady) {
-                return;
-            }
-
             handleRemoteAudioCommand(command);
         });
 
-    /*
-     * Give Firebase a moment to deliver the existing
-     * children before allowing new commands through.
-     */
-    setTimeout(() => {
-        remoteAudioReady = true;
-    }, 500);
+    }).catch(err => {
+        console.error("Failed to clear remote audio listener node:", err);
+    });
 }
 
 
@@ -1587,7 +1572,7 @@ function handleRemoteAudioCommand(command) {
    ROOM SELECTION
    ========================================================= */
 
-function selectRoom(roomKey) {
+async function selectRoom(roomKey) {
 
     const room = rooms[roomKey];
 
@@ -1599,13 +1584,11 @@ function selectRoom(roomKey) {
     currentRoom = roomKey;
     const isMobile = isMobileDevice();
 
-    /* 1. CLEAR PREVIOUS REMOTE AUDIO COMMANDS FOR THIS ROOM */
-    if (typeof firebase !== "undefined" && firebase.database) {
-        // Option A: If using Firebase Database, set the room's audio node to null/empty
-        firebase.database().ref(`rooms/${roomKey}/lastAudioCommand`).set(null);
-    } else if (typeof socket !== "undefined") {
-        // Option B: If using WebSockets, emit a clear command
-        socket.emit("clearRoomCommand", { roomKey });
+    /* 1. WIPE ALL REMOTE AUDIO COMMANDS FOR THIS ROOM IN FIREBASE */
+    try {
+        await remove(ref(db, `remoteAudio/${roomKey}`));
+    } catch (err) {
+        console.error("Error clearing audio commands:", err);
     }
 
     const remoteCheckbox = document.getElementById("remoteAudioCheckbox");
