@@ -805,41 +805,56 @@ a#toggleControls {
   /* Make header and general text larger */
   #remoteAudioLabel,
   .draggablePanel header,
-  .audio-item,
-  .audio-control-label {
+  figcaption {
     font-size: 1.5rem !important;
     line-height: 1.4;
+    font-weight: bold;
   }
 
-  /* Expand audio section row height to prevent clipping */
-  .audio-item, 
-  .audio-row,
-  .sound-effect-row {
+  /* Style audio container rows to stack vertically and prevent clipping */
+  .audioItem {
     min-height: 80px !important;
     height: auto !important;
     padding: 12px 8px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
+    margin-bottom: 15px;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    box-sizing: border-box;
   }
 
-  /* Enlarge Play / Pause / Stop buttons */
-  .audio-item button,
-  .play-btn,
-  .stop-btn,
-  .control-btn {
-    min-width: 60px !important;
-    min-height: 60px !important;
+  /* Make HTML native audio elements expand full width */
+  .audioItem audio,
+  #audioPlayer audio {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    height: 54px !important; /* Makes play/pause buttons much easier to tap */
+    margin-top: 8px;
+    box-sizing: border-box;
+  }
+
+  /* Taller, full-width Mummy Buttons */
+  #mummyPanel button,
+  .mummy-btn {
+    display: block !important;
+    width: 100% !important;
+    min-height: 70px !important; /* Taller touch target */
     font-size: 1.6rem !important;
+    font-weight: bold;
+    margin: 12px 0 !important;
     padding: 10px !important;
-    border-radius: 8px;
+    border-radius: 10px;
   }
 
-  /* Make volume/progress sliders easier to touch */
-  .audio-item input[type="range"] {
+  /* Make volume/progress sliders easier to touch if present */
+  .audioItem input[type="range"] {
     height: 28px !important;
+    width: 100% !important;
   }
 }
+
 </style>
   
 <script type="module">
@@ -878,7 +893,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.6");
+console.log("GGControlPanel 2.7");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
