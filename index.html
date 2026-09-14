@@ -743,30 +743,15 @@ a#toggleControls {
   cursor: grabbing;
   background: rgba(30, 80, 60, 0.95);
 }
-
-
-/* =========================================================
-   MOBILE / SMALL SCREEN
-   ========================================================= */
-
-@media (max-width: 1000px) {
-
-  #cameraPanel1,
-  #cameraPanel2 {
-    width: 45vw;
-  }
-
-  #cameraPanel2 {
-    left: calc(45vw + 50px);
-  }
-
-}
-
 /* =========================================================
    MOBILE / SMALL SCREEN
    ========================================================= */
 
 @media (max-width: 1024px) {
+
+  /* ---------------------------------------------------------
+     ROOM SELECTION
+     --------------------------------------------------------- */
 
   /* Stack room selection buttons vertically */
   .roomButtons {
@@ -780,10 +765,20 @@ a#toggleControls {
     height: 90px !important;
   }
 
-  /* Hide the remote checkbox on mobile */
+
+  /* ---------------------------------------------------------
+     REMOTE AUDIO / MOBILE MODE
+     --------------------------------------------------------- */
+
+  /* Hide the remote audio checkbox on mobile */
   .remoteOption input[type="checkbox"] {
     display: none !important;
   }
+
+
+  /* ---------------------------------------------------------
+     PANELS
+     --------------------------------------------------------- */
 
   /* Force draggable panels into natural static layout */
   .draggablePanel {
@@ -792,49 +787,77 @@ a#toggleControls {
     top: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
+
     width: 92vw !important;
+
     margin: 15px auto !important;
+
     height: auto !important;
     max-height: none !important;
+
     overflow: visible !important;
+
     box-sizing: border-box !important;
   }
 
-  /* Enlarge panel handle/header text */
-  .draggablePanel header,
-  .draggablePanel .handle,
-  .panel-header,
-  .panel-title,
-  #remoteAudioLabel {
+
+  /* ---------------------------------------------------------
+     PANEL HEADERS / HANDLES
+     --------------------------------------------------------- */
+
+  /* Make AUDIO CONTROLS and MUMMY BUTTON handles
+     larger on mobile */
+  .draggablePanel .dragHandle {
     font-size: 1.8rem !important;
     padding: 14px 10px !important;
     line-height: 1.3 !important;
     font-weight: bold !important;
+
+    min-height: 60px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
-  /* Allow audio player panel to expand smoothly without scroll bounds */
+
+  /* ---------------------------------------------------------
+     AUDIO PANEL
+     --------------------------------------------------------- */
+
+  /* Allow audio player to expand without scroll bounds */
   #audioPlayer {
     max-height: none !important;
     height: auto !important;
+
     overflow: visible !important;
+
     padding: 15px 10px !important;
   }
 
-  /* Prevent audio item containers from clipping elements */
+
+  /* Audio item containers */
   .audioItem {
     width: 100% !important;
+
     min-height: max-content !important;
     height: auto !important;
+
     padding: 12px 10px !important;
+
     margin-bottom: 20px !important;
+
     display: flex !important;
     flex-direction: column !important;
     align-items: flex-start !important;
+
     box-sizing: border-box !important;
+
     overflow: hidden !important;
   }
 
-  /* Enlarge track captions/labels */
+
+  /* Enlarge audio track names */
   .audioItem figcaption,
   .audioItem caption,
   .audioItem label,
@@ -842,47 +865,76 @@ a#toggleControls {
     font-size: 2.4rem !important;
     font-weight: bold !important;
     line-height: 1.4 !important;
+
     word-break: break-word !important;
   }
 
-  /* Expand native HTML audio controls full width */
+
+  /* Expand native audio controls */
   .audioItem audio,
   #audioPlayer audio {
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
+
     height: 52px !important;
+
     margin-top: 10px !important;
+
     display: block !important;
+
     box-sizing: border-box !important;
   }
 
-  /* Enlarge custom Play/Pause/Stop/Control buttons if used */
+
+  /* ---------------------------------------------------------
+     AUDIO BUTTONS
+     --------------------------------------------------------- */
+
+  /* Enlarge custom Play / Pause / Stop buttons */
   .audio-item button,
   .play-btn,
   .stop-btn,
   .control-btn {
     min-width: 60px !important;
     min-height: 60px !important;
+
     font-size: 1.6rem !important;
+
     padding: 10px !important;
+
     border-radius: 8px !important;
   }
 
-  /* Taller, full-width Mummy Panel buttons */
+
+  /* ---------------------------------------------------------
+     MUMMY PANEL
+     --------------------------------------------------------- */
+
+  /* Taller Mummy button */
   #mummyPanel button,
   .mummy-btn {
     display: block !important;
+
     width: 100% !important;
+
     min-height: 70px !important;
+
     font-size: 1.6rem !important;
     font-weight: bold !important;
+
     margin: 12px 0 !important;
     padding: 10px !important;
+
     border-radius: 10px !important;
   }
 
-  /* Make range sliders touch-friendly */
+
+  /* ---------------------------------------------------------
+     AUDIO SLIDERS
+     --------------------------------------------------------- */
+
+  /* Make range sliders easier to use on touch screens */
   .audioItem input[type="range"] {
     height: 28px !important;
     width: 100% !important;
@@ -926,7 +978,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.10");
+console.log("GGControlPanel 2.11");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
