@@ -851,7 +851,8 @@ a#toggleControls {
     set,
     get,
     onValue,
-    onChildAdded
+    onChildAdded,
+    remove
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 
@@ -877,7 +878,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.5");
+console.log("GGControlPanel 2.6");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
