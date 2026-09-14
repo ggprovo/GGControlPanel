@@ -906,6 +906,184 @@ a#toggleControls {
 
 }
 
+/* =========================================================
+   MOBILE AUDIO-ONLY MODE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    /*
+     * The controller itself becomes the entire phone screen.
+     */
+    #controller.mobile-mode {
+        position: fixed !important;
+        inset: 0 !important;
+
+        width: 100vw !important;
+        height: 100vh !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        overflow: hidden !important;
+    }
+
+
+    /*
+     * COMPLETELY REMOVE all non-audio panels.
+     *
+     * display:none means their handles do not exist
+     * visually or take up any space.
+     */
+    #controller.mobile-mode #timerPanel,
+    #controller.mobile-mode #cameraPanel1,
+    #controller.mobile-mode #cameraPanel2,
+    #controller.mobile-mode #puzzlePanel,
+    #controller.mobile-mode #submitPanel {
+        display: none !important;
+    }
+
+
+    /*
+     * AUDIO PANEL
+     *
+     * Fill the entire phone screen.
+     */
+    #controller.mobile-mode #audioPanel {
+        display: block !important;
+
+        position: fixed !important;
+
+        left: 0 !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+
+        width: 100vw !important;
+        height: 100vh !important;
+
+        margin: 0 !important;
+
+        box-sizing: border-box !important;
+
+        border-radius: 0 !important;
+
+        overflow: hidden !important;
+
+        z-index: 9999 !important;
+    }
+
+
+    /*
+     * AUDIO HEADER
+     */
+    #controller.mobile-mode #audioPanel .dragHandle {
+        display: block !important;
+
+        width: 100% !important;
+
+        box-sizing: border-box !important;
+
+        text-align: center !important;
+
+        font-size: 22px !important;
+
+        padding: 18px !important;
+    }
+
+
+    /*
+     * AUDIO CONTENT
+     *
+     * Fill everything below the header.
+     */
+    #controller.mobile-mode #audioPlayer {
+        width: 100% !important;
+
+        height: calc(100vh - 62px) !important;
+        max-height: none !important;
+
+        box-sizing: border-box !important;
+
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+
+        padding: 20px !important;
+
+        border-radius: 0 !important;
+    }
+
+
+    /*
+     * Make each audio control large enough
+     * to comfortably use on a phone.
+     */
+    #controller.mobile-mode .audioItem {
+        width: 100% !important;
+
+        margin-bottom: 25px !important;
+    }
+
+
+    #controller.mobile-mode .audioItem figcaption {
+        font-size: 18px !important;
+
+        margin-bottom: 8px !important;
+    }
+
+
+    #controller.mobile-mode .audioItem audio {
+        width: 100% !important;
+
+        height: 45px !important;
+    }
+
+
+    /*
+     * MUMMY
+     *
+     * Hidden by default.
+     * JavaScript will turn it on only for Egyptian.
+     */
+    #controller.mobile-mode #mummyPanel {
+        display: none !important;
+    }
+
+
+    /*
+     * Egyptian mummy panel.
+     *
+     * If JS adds the mobile-mummy class,
+     * make it a small floating button.
+     */
+    #controller.mobile-mode #mummyPanel.mobile-mummy {
+        display: block !important;
+
+        position: fixed !important;
+
+        left: 15px !important;
+        right: 15px !important;
+        bottom: 15px !important;
+
+        top: auto !important;
+
+        width: auto !important;
+
+        z-index: 10000 !important;
+    }
+
+
+    #controller.mobile-mode #mummyPanel.mobile-mummy .dragHandle {
+        display: none !important;
+    }
+
+
+    #controller.mobile-mode #mummyPanel.mobile-mummy
+    #mummyButtonContainer {
+        border-radius: 10px !important;
+    }
+
+}
 </style>
   
 <script type="module">
