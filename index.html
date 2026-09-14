@@ -762,328 +762,6 @@ a#toggleControls {
 
 }
 
-/* =========================================================
-   MOBILE MODE
-   ========================================================= */
-
-@media (max-width: 768px) {
-
-    /*
-     * ROOM SELECTION
-     */
-
-    #roomSelection {
-        padding: 20px;
-    }
-
-    #roomSelection h1 {
-        font-size: 34px;
-        margin-bottom: 30px;
-        text-align: center;
-    }
-
-
-    /*
-     * MOBILE MODE LABEL
-     */
-
-    .remoteOption {
-        margin-bottom: 30px;
-    }
-
-    .remoteOption label {
-        justify-content: center;
-        font-size: 22px;
-    }
-
-
-    /*
-     * ROOM BUTTONS
-     *
-     * Stack them vertically.
-     */
-
-    .roomButtons {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-        width: min(320px, 85vw);
-    }
-
-    .roomButton {
-        width: 100%;
-        height: 90px;
-        font-size: 24px;
-    }
-
-
-    /*
-     * MOBILE CONTROLLER
-     */
-
-    #controller.mobile-mode {
-        width: 100vw;
-        height: 100vh;
-        overflow: hidden;
-    }
-
-
-    /*
-     * Hide everything except AUDIO and
-     * the Egyptian MUMMY button.
-     */
-
-    #controller.mobile-mode #timerPanel,
-    #controller.mobile-mode #cameraPanel1,
-    #controller.mobile-mode #cameraPanel2,
-    #controller.mobile-mode #puzzlePanel,
-    #controller.mobile-mode #submitPanel {
-        display: none !important;
-    }
-
-
-    /*
-     * AUDIO PANEL
-     */
-
-    #controller.mobile-mode #audioPanel {
-        display: block !important;
-
-        position: absolute;
-
-        left: 10px;
-        right: 10px;
-        top: 20px;
-
-        width: auto;
-
-        z-index: 100;
-    }
-
-
-    #controller.mobile-mode #audioPlayer {
-        max-height: calc(100vh - 75px);
-        overflow-y: auto;
-    }
-
-
-    /*
-     * MUMMY PANEL
-     *
-     * selectRoom() controls whether it is
-     * displayed, so only Egyptian gets it.
-     */
-
-    #controller.mobile-mode #mummyPanel {
-        left: 10px;
-        right: 10px;
-        top: auto;
-        bottom: 20px;
-
-        width: auto;
-
-        z-index: 101;
-    }
-
-
-    /*
-     * Make audio controls comfortable
-     * to use on a phone.
-     */
-
-    #controller.mobile-mode .audioItem {
-        margin-bottom: 20px;
-    }
-
-    #controller.mobile-mode .audioItem figcaption {
-        font-size: 16px;
-    }
-
-    #controller.mobile-mode .audioItem audio {
-        width: 100%;
-        min-height: 40px;
-    }
-
-}
-
-/* =========================================================
-   MOBILE AUDIO-ONLY MODE
-   ========================================================= */
-
-@media (max-width: 768px) {
-
-    /*
-     * The controller itself becomes the entire phone screen.
-     */
-    #controller.mobile-mode {
-        position: fixed !important;
-        inset: 0 !important;
-
-        width: 100vw !important;
-        height: 100vh !important;
-
-        margin: 0 !important;
-        padding: 0 !important;
-
-        overflow: hidden !important;
-    }
-
-
-    /*
-     * COMPLETELY REMOVE all non-audio panels.
-     *
-     * display:none means their handles do not exist
-     * visually or take up any space.
-     */
-    #controller.mobile-mode #timerPanel,
-    #controller.mobile-mode #cameraPanel1,
-    #controller.mobile-mode #cameraPanel2,
-    #controller.mobile-mode #puzzlePanel,
-    #controller.mobile-mode #submitPanel {
-        display: none !important;
-    }
-
-
-    /*
-     * AUDIO PANEL
-     *
-     * Fill the entire phone screen.
-     */
-    #controller.mobile-mode #audioPanel {
-        display: block !important;
-
-        position: fixed !important;
-
-        left: 0 !important;
-        top: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-
-        width: 100vw !important;
-        height: 100vh !important;
-
-        margin: 0 !important;
-
-        box-sizing: border-box !important;
-
-        border-radius: 0 !important;
-
-        overflow: hidden !important;
-
-        z-index: 9999 !important;
-    }
-
-
-    /*
-     * AUDIO HEADER
-     */
-    #controller.mobile-mode #audioPanel .dragHandle {
-        display: block !important;
-
-        width: 100% !important;
-
-        box-sizing: border-box !important;
-
-        text-align: center !important;
-
-        font-size: 22px !important;
-
-        padding: 18px !important;
-    }
-
-
-    /*
-     * AUDIO CONTENT
-     *
-     * Fill everything below the header.
-     */
-    #controller.mobile-mode #audioPlayer {
-        width: 100% !important;
-
-        height: calc(100vh - 62px) !important;
-        max-height: none !important;
-
-        box-sizing: border-box !important;
-
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-
-        padding: 20px !important;
-
-        border-radius: 0 !important;
-    }
-
-
-    /*
-     * Make each audio control large enough
-     * to comfortably use on a phone.
-     */
-    #controller.mobile-mode .audioItem {
-        width: 100% !important;
-
-        margin-bottom: 25px !important;
-    }
-
-
-    #controller.mobile-mode .audioItem figcaption {
-        font-size: 18px !important;
-
-        margin-bottom: 8px !important;
-    }
-
-
-    #controller.mobile-mode .audioItem audio {
-        width: 100% !important;
-
-        height: 45px !important;
-    }
-
-
-    /*
-     * MUMMY
-     *
-     * Hidden by default.
-     * JavaScript will turn it on only for Egyptian.
-     */
-    #controller.mobile-mode #mummyPanel {
-        display: none !important;
-    }
-
-
-    /*
-     * Egyptian mummy panel.
-     *
-     * If JS adds the mobile-mummy class,
-     * make it a small floating button.
-     */
-    #controller.mobile-mode #mummyPanel.mobile-mummy {
-        display: block !important;
-
-        position: fixed !important;
-
-        left: 15px !important;
-        right: 15px !important;
-        bottom: 15px !important;
-
-        top: auto !important;
-
-        width: auto !important;
-
-        z-index: 10000 !important;
-    }
-
-
-    #controller.mobile-mode #mummyPanel.mobile-mummy .dragHandle {
-        display: none !important;
-    }
-
-
-    #controller.mobile-mode #mummyPanel.mobile-mummy
-    #mummyButtonContainer {
-        border-radius: 10px !important;
-    }
-
-}
 </style>
   
 <script type="module">
@@ -1121,8 +799,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-
-console.log("GGControlPanel 1.0")
+console.log("GGControlPanel 2.1");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
@@ -1504,18 +1181,6 @@ let remoteAudioReady = false;
 let currentRoom = null;
 let openedLinks = {};
 
-function isMobileMode() {
-
-    return (
-        window.matchMedia("(max-width: 768px)").matches ||
-        (
-            navigator.maxTouchPoints > 0 &&
-            window.innerWidth <= 1024
-        )
-    );
-
-}
-
 var task;
 var panTiltDuration = 500;
 var username = "admin";
@@ -1843,128 +1508,48 @@ function selectRoom(roomKey) {
     }
 
     currentRoom = roomKey;
-
-    const mobileMode = isMobileMode();
-
-    /*
-     * MOBILE MODE
-     *
-     * Automatically enable remote mode.
-     *
-     * Desktop still uses the checkbox.
-     */
-    if (mobileMode) {
-
-        remoteAudioEnabled = true;
-
-    } else {
-
-        const checkbox =
-            document.getElementById("remoteAudioCheckbox");
-
+    
         remoteAudioEnabled =
-            checkbox ? checkbox.checked : false;
-    }
-
+        document.getElementById(
+            "remoteAudioCheckbox"
+        ).checked;
+    
     updateRemoteAudioUI();
-
-    /*
-     * Start remote audio/timer listeners.
-     */
+    
     listenForRemoteAudio(roomKey);
     listenForRemoteTimer(roomKey);
 
-    /*
-     * MUMMY BUTTON
-     *
-     * Only show for Egyptian.
-     */
     document.getElementById("mummyPanel").style.display =
-        roomKey === "egyptian" ? "block" : "none";
+    roomKey === "egyptian" ? "block" : "none";
 
-
-    /*
-     * OPEN AMBIENT MIXER LINKS
-     *
-     * Desktop:
-     *     Open the normal room links.
-     *
-     * Mobile:
-     *     DO NOT open any other tabs.
-     */
+    // Open all room links in new tabs
     openedLinks = {};
 
-    if (!mobileMode) {
+    room.links.forEach(link => {
+        const tab = window.open(link.link, "_blank");
 
-        room.links.forEach(link => {
+        if (link.id !== undefined) {
+            openedLinks[link.id] = tab;
+        }
+    });
 
-            const tab =
-                window.open(link.link, "_blank");
-
-            if (link.id !== undefined) {
-                openedLinks[link.id] = tab;
-            }
-
-        });
-
-    }
-
-
-    /*
-     * Set camera IPs.
-     */
     ip1 = room.ip1;
     ip2 = room.ip2;
-
 
     console.log("Selected room:", room.name);
     console.log("Camera 1:", ip1);
     console.log("Camera 2:", ip2);
-    console.log("Mobile mode:", mobileMode);
 
+    document.getElementById("roomSelection").style.display = "none";
+    document.getElementById("controller").style.display = "block";
 
-    /*
-     * Hide room selection.
-     */
-    document.getElementById("roomSelection").style.display =
-        "none";
-
-    document.getElementById("controller").style.display =
-        "block";
-
-
-    /*
-     * Tell CSS that we're in mobile mode.
-     */
-    document.getElementById("controller").classList.toggle(
-        "mobile-mode",
-        mobileMode
-    );
-
-
-    /*
-     * Set room background.
-     */
     document.body.style.backgroundImage =
         `url("${room.background}")`;
 
-
-    /*
-     * Load room audio.
-     */
     loadAudio(room);
-    /*
-     * Reset puzzles.
-     */
+
     resetPuzzles();
-    /*
-     * Only start the normal viewer on desktop.
-     *
-     * Mobile users don't need the camera/puzzle interface.
-     */
-    if (!mobileMode) {
-        startViewer();
-    }
+    startViewer();
 }
 
 
@@ -3523,26 +3108,6 @@ function initDragging() {
    ========================================================= */
 
 function initPage() {
-    const remoteOptionText =
-        document.getElementById("remoteOptionText");
-    
-    if (isMobileMode()) {
-    
-        remoteOptionText.textContent = "MOBILE MODE";
-    
-        /*
-         * We don't actually need the checkbox in mobile mode.
-         * Hide it and automatically enable remote mode.
-         */
-        document.getElementById(
-            "remoteAudioCheckbox"
-        ).style.display = "none";
-    
-    } else {
-    
-        remoteOptionText.textContent = "REMOTE AUDIO";
-    
-    }
 
     document.getElementById(
         "roomSelection"
@@ -3926,7 +3491,7 @@ window.submitRoomData = submitRoomData;
     <div class="remoteOption">
         <label>
             <input type="checkbox" id="remoteAudioCheckbox">
-            <span id="remoteOptionText">REMOTE AUDIO</span>
+            <span>REMOTE AUDIO</span>
         </label>
     </div>
 
