@@ -766,7 +766,6 @@ a#toggleControls {
    MOBILE / SMALL SCREEN
    ========================================================= */
 
-/* Increased to 1024px to catch larger mobile screens/tablets */
 @media (max-width: 1024px) {
 
   /* Stack room buttons vertically */
@@ -797,8 +796,48 @@ a#toggleControls {
     margin: 15px auto;
   }
 
+  /* Allow audio player container to expand vertically */
   #audioPlayer {
-    max-height: 60vh;
+    max-height: none !important;
+    padding: 20px 10px;
+  }
+
+  /* Make header and general text larger */
+  #remoteAudioLabel,
+  .draggablePanel header,
+  .audio-item,
+  .audio-control-label {
+    font-size: 1.5rem !important;
+    line-height: 1.4;
+  }
+
+  /* Expand audio section row height to prevent clipping */
+  .audio-item, 
+  .audio-row,
+  .sound-effect-row {
+    min-height: 80px !important;
+    height: auto !important;
+    padding: 12px 8px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Enlarge Play / Pause / Stop buttons */
+  .audio-item button,
+  .play-btn,
+  .stop-btn,
+  .control-btn {
+    min-width: 60px !important;
+    min-height: 60px !important;
+    font-size: 1.6rem !important;
+    padding: 10px !important;
+    border-radius: 8px;
+  }
+
+  /* Make volume/progress sliders easier to touch */
+  .audio-item input[type="range"] {
+    height: 28px !important;
   }
 }
 </style>
