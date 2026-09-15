@@ -239,6 +239,7 @@ body {
   width: 100%;
 }
 
+
 /* =========================================================
    PUZZLE PANEL
    ========================================================= */
@@ -250,10 +251,10 @@ body {
 }
 
 #puzzleContainer {
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 0 0 12px 12px;
-    padding: 12px;
-    color: white;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 0 0 12px 12px;
+  padding: 12px;
+  color: white;
 }
 
 
@@ -262,43 +263,35 @@ body {
    ========================================================= */
 
 .puzzleSectionTitle {
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 10px;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
-
-
-/*
- * This is the scrollable area containing
- * available puzzles.
- */
 
 #availablePuzzles {
-    max-height: 300px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-right: 5px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 5px;
 }
 
-
 /* Scrollbar */
-
 #availablePuzzles::-webkit-scrollbar {
-    width: 8px;
+  width: 8px;
 }
 
 #availablePuzzles::-webkit-scrollbar-track {
-    background: #222;
-    border-radius: 5px;
+  background: #222;
+  border-radius: 5px;
 }
 
 #availablePuzzles::-webkit-scrollbar-thumb {
-    background: #666;
-    border-radius: 5px;
+  background: #666;
+  border-radius: 5px;
 }
 
 #availablePuzzles::-webkit-scrollbar-thumb:hover {
-    background: #888;
+  background: #888;
 }
 
 
@@ -307,24 +300,24 @@ body {
    ========================================================= */
 
 .puzzleButton {
-    display: block;
-    width: 100%;
-    margin-bottom: 8px;
-    padding: 10px;
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
 
-    border: 2px solid #777;
-    border-radius: 6px;
+  border: 2px solid #777;
+  border-radius: 6px;
 
-    background: #60A080;
-    color: white;
+  background: #60A080;
+  color: white;
 
-    font-weight: bold;
-    cursor: pointer;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .puzzleButton:hover {
-    background: white;
-    color: #60A080;
+  background: white;
+  color: #60A080;
 }
 
 
@@ -333,148 +326,123 @@ body {
    ========================================================= */
 
 .completedDropdown {
-    margin-top: 15px;
+  margin-top: 15px;
 }
-
 
 .completedDropdownHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-    padding: 10px;
+  padding: 10px;
 
-    background: #222;
-    border: 2px solid #555;
-    border-radius: 6px;
+  background: #222;
+  border: 2px solid #555;
+  border-radius: 6px;
 
-    color: white;
-    font-weight: bold;
+  color: white;
+  font-weight: bold;
 
-    cursor: pointer;
-    user-select: none;
+  cursor: pointer;
+  user-select: none;
 }
-
 
 .completedDropdownHeader:hover {
-    background: #333;
+  background: #333;
 }
-
 
 .completedArrow {
-    transition: transform 0.2s;
+  transition: transform 0.2s;
 }
 
-
-.completedDropdown.open
-.completedArrow {
-    transform: rotate(180deg);
+.completedDropdown.open .completedArrow {
+  transform: rotate(180deg);
 }
-
 
 #completedPuzzles {
-    display: none;
+  display: none;
 
-    max-height: 200px;
-    overflow-y: auto;
+  max-height: 200px;
+  overflow-y: auto;
 
-    background: rgba(20, 20, 20, 0.8);
+  background: rgba(20, 20, 20, 0.8);
 
-    border: 2px solid #555;
-    border-top: none;
+  border: 2px solid #555;
+  border-top: none;
 
-    border-radius: 0 0 6px 6px;
+  border-radius: 0 0 6px 6px;
 
-    padding: 5px;
+  padding: 5px;
 }
 
-
-/*
- * Show completed puzzles when dropdown
- * is open.
- */
-
-.completedDropdown.open
-#completedPuzzles {
-    display: block;
+.completedDropdown.open #completedPuzzles {
+  display: block;
 }
-
 
 .completedPuzzle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-    padding: 7px 4px;
+  padding: 7px 4px;
 
-    border-bottom: 1px solid #444;
-    color: #aaa;
+  border-bottom: 1px solid #444;
+  color: #aaa;
+  position: relative;
 }
-
 
 .completedPuzzle:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
-
 
 .completedPuzzleName {
-    color: #ddd;
-}
-
-
-.completedPuzzleTime {
-    color: #60A080;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.completedPuzzle {
-    position: relative;
+  color: #ddd;
 }
 
 .completedPuzzleTime {
-    color: #60A080;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: text;
+  color: #60A080;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: text;
 }
 
 .completedPuzzle:hover {
-    background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .undoButton {
-    display: none;
-    margin-left: 8px;
-    padding: 3px 7px;
-    border: 1px solid #a44;
-    border-radius: 4px;
-    background: #722;
-    color: white;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
+  display: none;
+  margin-left: 8px;
+  padding: 3px 7px;
+  border: 1px solid #a44;
+  border-radius: 4px;
+  background: #722;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .completedPuzzle:hover .undoButton {
-    display: inline-block;
+  display: inline-block;
 }
 
 .undoButton:hover {
-    background: #a33;
+  background: #a33;
 }
 
 .completedPuzzleTimeInput {
-    width: 55px;
-    padding: 2px 4px;
-    border: 1px solid #60A080;
-    border-radius: 4px;
-    background: #222;
-    color: white;
-    text-align: center;
-    font-size: 12px;
-    font-weight: bold;
+  width: 55px;
+  padding: 2px 4px;
+  border: 1px solid #60A080;
+  border-radius: 4px;
+  background: #222;
+  color: white;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
 }
+
 
 /* =========================================================
    SUBMIT PANEL (DRAGGABLE)
@@ -551,96 +519,97 @@ body {
 }
 
 #submitContainer button.submitBtn:disabled {
-    background: #555;
-    border-color: #666;
-    color: #aaa;
-    cursor: not-allowed;
-    opacity: 0.7;
+  background: #555;
+  border-color: #666;
+  color: #aaa;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 #submitContainer button.submitBtn:disabled:hover {
-    background: #555;
-    color: #aaa;
+  background: #555;
+  color: #aaa;
 }
 
 #didNotGetOutReason {
-    display: none;
-    margin-top: 10px;
+  display: none;
+  margin-top: 10px;
 }
 
 #didNotGetOutReason textarea {
-    width: 100%;
-    min-height: 75px;
-    resize: vertical;
-    padding: 8px;
-    border: 2px solid #555;
-    border-radius: 6px;
-    background: #222;
-    color: white;
-    font-family: inherit;
-    font-size: 14px;
+  width: 100%;
+  min-height: 75px;
+  resize: vertical;
+  padding: 8px;
+  border: 2px solid #555;
+  border-radius: 6px;
+  background: #222;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
 }
 
 #didNotGetOutReason textarea:focus {
-    outline: none;
-    border-color: #60A080;
+  outline: none;
+  border-color: #60A080;
 }
 
 #mummyPanel {
-    left: 30px;
-    top: 30px;
-    width: 180px;
-    display: none;
+  left: 30px;
+  top: 30px;
+  width: 180px;
+  display: none;
 }
 
 #mummyButtonContainer {
-    background: rgba(0, 0, 0, 0.9);
-    border-radius: 0 0 12px 12px;
-    padding: 12px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 0 0 12px 12px;
+  padding: 12px;
 }
 
 #mummyButton {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #777;
-    border-radius: 6px;
-    background: #60A080;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #777;
+  border-radius: 6px;
+  background: #60A080;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 #mummyButton:hover {
-    background: white;
-    color: #60A080;
+  background: white;
+  color: #60A080;
 }
+
 
 /* =========================================================
    REMOTE AUDIO
    ========================================================= */
 
 .remoteOption {
-    margin-bottom: 35px;
+  margin-bottom: 35px;
 }
 
 .remoteOption label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
-    font-size: 20px;
-    font-weight: bold;
-    color: white;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
 
-    cursor: pointer;
-    user-select: none;
+  cursor: pointer;
+  user-select: none;
 }
 
 #remoteAudioCheckbox {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-    accent-color: #2196ff;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: #2196ff;
 }
 
 
@@ -649,19 +618,20 @@ body {
    ========================================================= */
 
 #audioPanel.remote-enabled {
-    border: 2px solid #2196ff;
-    border-radius: 12px;
+  border: 2px solid #2196ff;
+  border-radius: 12px;
 
-    box-shadow:
-        0 0 5px #2196ff,
-        0 0 15px #2196ff,
-        0 0 30px rgba(33, 150, 255, 0.8);
+  box-shadow:
+    0 0 5px #2196ff,
+    0 0 15px #2196ff,
+    0 0 30px rgba(33, 150, 255, 0.8);
 
-    transition:
-        box-shadow 0.25s ease,
-        border-color 0.25s ease;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
-  
+
+
 /* =========================================================
    OTHER ORIGINAL STYLES
    ========================================================= */
@@ -672,11 +642,7 @@ div#settings {
   text-align: left;
 }
 
-img#webcamSnapshot {
-  width: 95%;
-  border: 2px solid #787272;
-}
-
+img#webcamSnapshot,
 img#webcamSnapshot2 {
   width: 95%;
   border: 2px solid #787272;
@@ -743,9 +709,7 @@ a#toggleControls {
   cursor: grabbing;
   background: rgba(30, 80, 60, 0.95);
 }
-/* =========================================================
-   MOBILE / SMALL SCREEN
-   ========================================================= */
+
 
 /* =========================================================
    MOBILE / SMALL SCREEN
@@ -753,9 +717,12 @@ a#toggleControls {
 
 @media (max-width: 1024px) {
 
-  /* Allow page scrolling on mobile */
-  body {
-    overflow: auto !important;
+  /* Allow main screen content expansion on mobile */
+  body, #controller {
+    overflow-y: auto !important;
+    position: relative !important;
+    height: auto !important;
+    min-height: 100vh !important;
   }
 
   /* ---------------------------------------------------------
@@ -820,59 +787,54 @@ a#toggleControls {
   }
 
   /* ---------------------------------------------------------
-     AUDIO PANEL
+     AUDIO PANEL MOBILE FIX
      --------------------------------------------------------- */
 
   #audioPlayer {
     max-height: none !important;
     height: auto !important;
     overflow: visible !important;
-    padding: 15px 10px 30px 10px !important;
+    padding: 15px 10px 25px 10px !important;
   }
 
-  /* Audio item containers */
   .audioItem {
+    display: block !important;
     width: 100% !important;
     height: auto !important;
     min-height: 0 !important;
 
-    padding: 12px 10px !important;
-    margin-bottom: 25px !important;
+    padding: 10px !important;
+    margin-bottom: 35px !important;
 
-    display: block !important;
     box-sizing: border-box !important;
-
-    overflow: visible !important; /* FIXED: Prevents clipping player elements */
+    overflow: visible !important;
   }
 
-  /* Enlarge audio track names */
   .audioItem figcaption,
   .audioItem caption,
   .audioItem label,
   figcaption {
-    font-size: 2.4rem !important;
+    display: block !important;
+    font-size: 2.2rem !important;
     font-weight: bold !important;
     line-height: 1.4 !important;
     word-break: break-word !important;
     margin-bottom: 12px !important;
   }
 
-  /* Native audio controls */
   .audioItem audio,
   #audioPlayer audio {
+    display: block !important;
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
 
-    /* FIXED: Restores natural native player height to eliminate cutoff */
-    height: auto !important; 
-    min-height: 45px !important;
-    max-height: none !important;
+    height: 54px !important;
+    min-height: 54px !important;
 
     margin-top: 10px !important;
     margin-bottom: 20px !important;
 
-    display: block !important;
     box-sizing: border-box !important;
   }
 
@@ -954,7 +916,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.17");
+console.log("GGControlPanel 2.18");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
