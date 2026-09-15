@@ -835,57 +835,54 @@ a#toggleControls {
     padding: 15px 10px !important;
   }
 
-
   /* Audio item containers */
-  .audioItem {
-    width: 100% !important;
-
-    min-height: max-content !important;
-    height: auto !important;
-
-    padding: 12px 10px !important;
-
-    margin-bottom: 20px !important;
-
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-
-    box-sizing: border-box !important;
-
-    overflow: hidden !important;
-  }
-
-
-  /* Enlarge audio track names */
-  .audioItem figcaption,
-  .audioItem caption,
-  .audioItem label,
-  figcaption {
-    font-size: 2.4rem !important;
-    font-weight: bold !important;
-    line-height: 1.4 !important;
-
-    word-break: break-word !important;
-  }
-
-
-  /* Expand native audio controls */
-  .audioItem audio,
-  #audioPlayer audio {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-
-    height: 52px !important;
-
-    margin-top: 10px !important;
-    margin-bottom: 30px !important; /* Adds blank space below each audio player on mobile */
-
-    display: block !important;
-
-    box-sizing: border-box !important;
-  }
+    .audioItem {
+      width: 100% !important;
+  
+      min-height: max-content !important;
+      height: auto !important;
+  
+      padding: 12px 10px !important;
+  
+      margin-bottom: 20px !important;
+  
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+  
+      box-sizing: border-box !important;
+  
+      overflow: visible !important; /* FIXED: Changed from hidden to visible so the player isn't clipped */
+    }
+  
+    /* Enlarge audio track names */
+    .audioItem figcaption,
+    .audioItem caption,
+    .audioItem label,
+    figcaption {
+      font-size: 2.4rem !important;
+      font-weight: bold !important;
+      line-height: 1.4 !important;
+  
+      word-break: break-word !important;
+    }
+  
+    /* Expand native audio controls */
+    .audioItem audio,
+    #audioPlayer audio {
+      width: 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+  
+      height: 54px !important; /* FIXED: Standard natural height for mobile audio controls */
+  
+      margin-top: 10px !important;
+      margin-bottom: 25px !important; /* Spacing below the player before the next item */
+  
+      display: block !important;
+  
+      box-sizing: border-box !important;
+    }
 
 
   /* ---------------------------------------------------------
@@ -979,7 +976,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.15");
+console.log("GGControlPanel 2.16");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
