@@ -710,6 +710,26 @@ a#toggleControls {
   background: rgba(30, 80, 60, 0.95);
 }
 
+#timerDisplay.editing {
+    outline: 2px solid #60A080;
+    border-radius: 6px;
+    cursor: text;
+    background: #111;
+}
+
+#timerEditInput {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 60px;
+    font-family: inherit;
+    font-weight: inherit;
+    text-align: center;
+    background: #111;
+    color: white;
+    border: 2px solid #60A080;
+    border-radius: 6px;
+    outline: none;
+}
 
 /* =========================================================
    MOBILE / SMALL SCREEN
@@ -915,7 +935,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.23");
+console.log("GGControlPanel 3.0");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
@@ -4443,6 +4463,10 @@ function sendTimerUpdate() {
 
 function updateTimerDisplay() {
 
+    if (timerEditing) {
+        return;
+    }
+
     const minutes =
         Math.floor(
             timerRemaining / 60
@@ -4470,6 +4494,194 @@ function updateTimerDisplay() {
 
 }
 
+/* =========================================================
+   EDIT MAIN TIMER BY CLICKING IT
+   ========================================================= */
+
+let timerEditing = false;
+
+function startEditingTimer() {
+
+    if (timerEditing) return;
+
+    timerEditing = true;
+
+    const currentDisplay =
+        formatPuzzleTime(timerRemaining);
+
+    const input =
+        document.createElement("input");
+
+    input.id = "timerEditInput";
+    input.type = "text";
+    input.value = currentDisplay;
+    input.maxLength = 8;
+
+    timerDisplay.textContent = "";
+    timerDisplay.appendChild(input);
+
+    timerDisplay.classList.add("editing");
+
+    input.focus();
+    input.select();
+
+
+    function saveTimerEdit() {
+
+        if (!timerEditing) return;
+
+        const value =
+            input.value.trim();
+
+        /*
+         * Accept:
+         *
+         * 45:30
+         * 5:00
+         * 90:15
+         *
+         * Also allow a plain number such as:
+         *
+         * 300
+         *
+         * which means 300 seconds.
+         */
+
+        let newRemaining = null;
+
+        const timeMatch =
+            value.match(/^(\d+):([0-5]\d)$/);
+
+        if (timeMatch) {
+
+            const minutes =
+                parseInt(timeMatch[1], 10);
+
+            const seconds =
+                parseInt(timeMatch[2], 10);
+
+            newRemaining =
+                minutes * 60 + seconds;
+
+        } else if (/^\d+$/.test(value)) {
+
+            newRemaining =
+                parseInt(value, 10);
+
+        }
+
+
+        /*
+         * Invalid input:
+         * restore the original timer.
+         */
+
+        if (
+            newRemaining === null ||
+            !Number.isFinite(newRemaining)
+        ) {
+
+            timerEditing = false;
+
+            timerDisplay.classList.remove("editing");
+
+            updateTimerDisplay();
+
+            return;
+        }
+
+
+        /*
+         * Set the new timer value.
+         */
+
+        timerRemaining =
+            Math.max(0, newRemaining);
+
+
+        timerEditing = false;
+
+        timerDisplay.classList.remove("editing");
+
+
+        /*
+         * Update the display.
+         */
+
+        updateTimerDisplay();
+
+
+        /*
+         * Broadcast the new timer value
+         * to remote-mode computers.
+         */
+
+        if (!remoteTimerApplying) {
+
+            const state =
+                timerInterval
+                    ? "running"
+                    : "paused";
+
+            broadcastTimerState(state);
+
+        }
+
+    }
+
+
+    /*
+     * Enter = save.
+     */
+
+    input.addEventListener(
+        "keydown",
+        event => {
+
+            if (event.key === "Enter") {
+
+                event.preventDefault();
+
+                saveTimerEdit();
+
+            }
+
+            if (event.key === "Escape") {
+
+                timerEditing = false;
+
+                timerDisplay.classList.remove(
+                    "editing"
+                );
+
+                updateTimerDisplay();
+
+            }
+
+        }
+    );
+
+
+    /*
+     * Clicking anywhere else = save.
+     */
+
+    input.addEventListener(
+        "blur",
+        saveTimerEdit
+    );
+
+}
+
+
+/*
+ * Click the timer to edit it.
+ */
+
+timerDisplay.addEventListener(
+    "click",
+    startEditingTimer
+);
 
 /* =========================================================
    TIMER LOOP
