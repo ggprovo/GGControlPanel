@@ -934,7 +934,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 2.23");
+console.log("GGControlPanel 3.2");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
@@ -1656,9 +1656,11 @@ async function selectRoom(roomKey) {
     remoteAudioEnabled = remoteCheckbox ? remoteCheckbox.checked : isMobile;
     
     updateRemoteAudioUI();
-    
-    listenForRemoteAudio(roomKey);
-    listenForRemoteTimer(roomKey);
+
+    if (remoteAudioEnabled) {
+        listenForRemoteAudio(roomKey);
+        listenForRemoteTimer(roomKey);
+    }
 
     /* Open links ONLY if NOT on mobile */
     openedLinks = {};
