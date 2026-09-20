@@ -141,6 +141,25 @@ body {
   font-size: 60px;
 }
 
+#timerDisplay {
+  font-size: 60px;
+  background: transparent;
+  color: white;
+  border: none;
+  text-align: center;
+  width: 100%;
+  font-family: inherit;
+  font-weight: bold;
+  outline: none;
+  cursor: pointer;
+}
+
+#timerDisplay:focus {
+  background: #222;
+  border: 2px solid #60A080;
+  border-radius: 6px;
+  cursor: text;
+}
 
 /* =========================================================
    CAMERA PANELS
@@ -710,26 +729,6 @@ a#toggleControls {
   background: rgba(30, 80, 60, 0.95);
 }
 
-#timerDisplay.editing {
-    outline: 2px solid #60A080;
-    border-radius: 6px;
-    cursor: text;
-    background: #111;
-}
-
-#timerEditInput {
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 60px;
-    font-family: inherit;
-    font-weight: inherit;
-    text-align: center;
-    background: #111;
-    color: white;
-    border: 2px solid #60A080;
-    border-radius: 6px;
-    outline: none;
-}
 
 /* =========================================================
    MOBILE / SMALL SCREEN
@@ -935,7 +934,7 @@ a#toggleControls {
     .catch(error => {
       console.error("Firebase authentication failed:", error);
     });
-console.log("GGControlPanel 3.0");
+console.log("GGControlPanel 2.23");
 /* =========================================================
    ROOM CONFIGURATION
    ========================================================= */
@@ -3698,9 +3697,7 @@ window.submitRoomData = submitRoomData;
 
         <div id="timerContainer">
 
-            <div id="timerDisplay">
-                60:00
-            </div>
+            <input id="timerDisplay" type="text" value="60:00" />
 
 
             <button id="openTimerWindow">
@@ -4055,772 +4052,301 @@ let remoteTimerUnsubscribe = null;
 let remoteTimerApplying = false;
 let remoteTimerReady = false;
 
-
-const timerDisplay =
-    document.getElementById(
-        'timerDisplay'
-    );
-
-
-const startButton =
-    document.getElementById(
-        'startButton'
-    );
-
-
-const pauseButton =
-    document.getElementById(
-        'pauseButton'
-    );
-
-
-const resetButton =
-    document.getElementById(
-        'resetButton'
-    );
-
-
-const speedSelect =
-    document.getElementById(
-        'speedSelect'
-    );
-
+const timerDisplay = document.getElementById('timerDisplay');
+const startButton = document.getElementById('startButton');
+const pauseButton = document.getElementById('pauseButton');
+const resetButton = document.getElementById('resetButton');
+const speedSelect = document.getElementById('speedSelect');
 
 let timerWindow = null;
-
 
 /* =========================================================
    OPEN TIMER WINDOW
    ========================================================= */
 
-document
-    .getElementById("openTimerWindow")
-    .addEventListener(
-        "click",
-        () => {
-
-            if (
-                !timerWindow ||
-                timerWindow.closed
-            ) {
-
-                timerWindow =
-                    window.open(
-                        "",
-                        "TimerWindow",
-                        "width=800,height=400"
-                    );
-
-
-                const doc =
-                    timerWindow.document;
-
-
-                doc.title = "Timer";
-
-
-                const style =
-                    doc.createElement("style");
-
-
-                style.textContent = `
-
-                    html,
-                    body {
-                        margin:0;
-                        padding:0;
-                        height:100%;
-                        width:100%;
-                        overflow:hidden;
-                        font-family:Arial,sans-serif;
-                    }
-
-                    @font-face {
-                        font-family:heistfont;
-                        src:url(heistfont.ttf);
-                    }
-
-                    #overlay {
-                        background-color:red;
-                        color:white;
-                        display:flex;
-                        justify-content:center;
-                        align-items:center;
-                        height:100%;
-                        width:100%;
-                        font-size:1.5em;
-                        cursor:pointer;
-                        user-select:none;
-                    }
-
-                    #timerScreen {
-                        display:none;
-                        background-color:#111;
-                        color:white;
-                        height:100%;
-                        width:100%;
-                        justify-content:center;
-                        align-items:center;
-                        font-family:'heistfont',monospace;
-                        font-size:30em;
-                        font-weight:bold;
-                    }
-
-                    .timerChar {
-                        position:absolute;
-                        top:50%;
-                        transform:translate(-50%,-50%);
-                        text-align:center;
-                        width:1ch;
-                    }
-
-                    #digit1 {
-                        left:10%;
-                    }
-
-                    #digit2 {
-                        left:30%;
-                    }
-
-                    #colon {
-                        left:50%;
-                    }
-
-                    #digit3 {
-                        left:70%;
-                    }
-
-                    #digit4 {
-                        left:90%;
-                    }
-
-                `;
-
-
-                doc.head.appendChild(style);
-
-
-                const overlay =
-                    doc.createElement("div");
-
-
-                overlay.id = "overlay";
-
-                overlay.textContent =
-                    "Double click to fullscreen";
-
-
-                doc.body.appendChild(
-                    overlay
-                );
-
-
-                const timerScreen =
-                    doc.createElement("div");
-
-
-                timerScreen.id =
-                    "timerScreen";
-
-
-                const digit1 =
-                    doc.createElement("span");
-
-
-                digit1.className =
-                    "timerChar";
-
-                digit1.id =
-                    "digit1";
-
-
-                const digit2 =
-                    doc.createElement("span");
-
-
-                digit2.className =
-                    "timerChar";
-
-                digit2.id =
-                    "digit2";
-
-
-                const colon =
-                    doc.createElement("span");
-
-
-                colon.className =
-                    "timerChar";
-
-                colon.id =
-                    "colon";
-
-                colon.textContent =
-                    ":";
-
-
-                const digit3 =
-                    doc.createElement("span");
-
-
-                digit3.className =
-                    "timerChar";
-
-                digit3.id =
-                    "digit3";
-
-
-                const digit4 =
-                    doc.createElement("span");
-
-
-                digit4.className =
-                    "timerChar";
-
-                digit4.id =
-                    "digit4";
-
-
-                timerScreen.appendChild(
-                    digit1
-                );
-
-                timerScreen.appendChild(
-                    digit2
-                );
-
-                timerScreen.appendChild(
-                    colon
-                );
-
-                timerScreen.appendChild(
-                    digit3
-                );
-
-                timerScreen.appendChild(
-                    digit4
-                );
-
-
-                doc.body.appendChild(
-                    timerScreen
-                );
-
-
-                overlay.addEventListener(
-                    "dblclick",
-                    () => {
-
-                        if (
-                            doc.body
-                                .requestFullscreen
-                        ) {
-
-                            doc.body
-                                .requestFullscreen();
-
-                        } else if (
-                            doc.body
-                                .webkitRequestFullscreen
-                        ) {
-
-                            doc.body
-                                .webkitRequestFullscreen();
-
-                        } else if (
-                            doc.body
-                                .msRequestFullscreen
-                        ) {
-
-                            doc.body
-                                .msRequestFullscreen();
-
-                        }
-
-
-                        overlay.style.display =
-                            "none";
-
-
-                        timerScreen.style.display =
-                            "flex";
-
-                    }
-                );
-
-
-                function updatePopupTimerDisplay(
-                    timeStr
-                ) {
-
-                    digit1.textContent =
-                        timeStr[0];
-
-                    digit2.textContent =
-                        timeStr[1];
-
-                    colon.textContent =
-                        ":";
-
-                    digit3.textContent =
-                        timeStr[3];
-
-                    digit4.textContent =
-                        timeStr[4];
-
-                }
-
-
-                timerWindow.addEventListener(
-                    "message",
-                    (event) => {
-
-                        if (
-                            event.data.timer !==
-                            undefined
-                        ) {
-
-                            updatePopupTimerDisplay(
-                                event.data.timer
-                            );
-
-                        }
-
-                    }
-                );
-
-
-                sendTimerUpdate();
-
-
-            } else {
-
-                timerWindow.focus();
-
+document.getElementById("openTimerWindow").addEventListener("click", () => {
+    if (!timerWindow || timerWindow.closed) {
+        timerWindow = window.open("", "TimerWindow", "width=800,height=400");
+        const doc = timerWindow.document;
+
+        doc.title = "Timer";
+
+        const style = doc.createElement("style");
+        style.textContent = `
+            html, body {
+                margin:0; padding:0; height:100%; width:100%;
+                overflow:hidden; font-family:Arial,sans-serif;
             }
+            @font-face {
+                font-family:heistfont;
+                src:url(heistfont.ttf);
+            }
+            #overlay {
+                background-color:red; color:white;
+                display:flex; justify-content:center; align-items:center;
+                height:100%; width:100%; font-size:1.5em;
+                cursor:pointer; user-select:none;
+            }
+            #timerScreen {
+                display:none; background-color:#111; color:white;
+                height:100%; width:100%; justify-content:center;
+                align-items:center; font-family:'heistfont',monospace;
+                font-size:30em; font-weight:bold;
+            }
+            .timerChar {
+                position:absolute; top:50%;
+                transform:translate(-50%,-50%);
+                text-align:center; width:1ch;
+            }
+            #digit1 { left:10%; }
+            #digit2 { left:30%; }
+            #colon { left:50%; }
+            #digit3 { left:70%; }
+            #digit4 { left:90%; }
+        `;
+        doc.head.appendChild(style);
 
+        const overlay = doc.createElement("div");
+        overlay.id = "overlay";
+        overlay.textContent = "Double click to fullscreen";
+        doc.body.appendChild(overlay);
+
+        const timerScreen = doc.createElement("div");
+        timerScreen.id = "timerScreen";
+
+        const digit1 = doc.createElement("span");
+        digit1.className = "timerChar"; digit1.id = "digit1";
+
+        const digit2 = doc.createElement("span");
+        digit2.className = "timerChar"; digit2.id = "digit2";
+
+        const colon = doc.createElement("span");
+        colon.className = "timerChar"; colon.id = "colon"; colon.textContent = ":";
+
+        const digit3 = doc.createElement("span");
+        digit3.className = "timerChar"; digit3.id = "digit3";
+
+        const digit4 = doc.createElement("span");
+        digit4.className = "timerChar"; digit4.id = "digit4";
+
+        timerScreen.appendChild(digit1);
+        timerScreen.appendChild(digit2);
+        timerScreen.appendChild(colon);
+        timerScreen.appendChild(digit3);
+        timerScreen.appendChild(digit4);
+
+        doc.body.appendChild(timerScreen);
+
+        overlay.addEventListener("dblclick", () => {
+            if (doc.body.requestFullscreen) doc.body.requestFullscreen();
+            else if (doc.body.webkitRequestFullscreen) doc.body.webkitRequestFullscreen();
+            else if (doc.body.msRequestFullscreen) doc.body.msRequestFullscreen();
+
+            overlay.style.display = "none";
+            timerScreen.style.display = "flex";
+        });
+
+        function updatePopupTimerDisplay(timeStr) {
+            if (!timeStr || timeStr.length < 5) return;
+            digit1.textContent = timeStr[0];
+            digit2.textContent = timeStr[1];
+            colon.textContent = ":";
+            digit3.textContent = timeStr[3];
+            digit4.textContent = timeStr[4];
         }
-    );
 
+        timerWindow.addEventListener("message", (event) => {
+            if (event.data.timer !== undefined) {
+                updatePopupTimerDisplay(event.data.timer);
+            }
+        });
+
+        sendTimerUpdate();
+    } else {
+        timerWindow.focus();
+    }
+});
 
 /* =========================================================
    CLOSE TIMER WINDOW
    ========================================================= */
 
-document
-    .getElementById("closeTimerWindow")
-    .addEventListener(
-        "click",
-        function() {
-
-            if (
-                timerWindow &&
-                !timerWindow.closed
-            ) {
-
-                timerWindow.close();
-
-            }
-
-        }
-    );
-
+document.getElementById("closeTimerWindow").addEventListener("click", function() {
+    if (timerWindow && !timerWindow.closed) {
+        timerWindow.close();
+    }
+});
 
 /* =========================================================
    SEND TIMER TO POPUP
    ========================================================= */
 
 function sendTimerUpdate() {
+    if (timerWindow && !timerWindow.closed && timerDisplay) {
+        // Updated to reading .value since timerDisplay is an input
+        const displayValue = timerDisplay.value;
 
-    if (
-        timerWindow &&
-        !timerWindow.closed
-    ) {
-
-        const displayValue =
-            document
-                .getElementById(
-                    "timerDisplay"
-                )
-                .textContent;
-
-
-        timerWindow.postMessage(
-            {
-                timer: displayValue
-            },
-            "*"
-        );
-
+        timerWindow.postMessage({ timer: displayValue }, "*");
     }
-
 }
 
-
 /* =========================================================
-   UPDATE TIMER
+   UPDATE TIMER DISPLAY
    ========================================================= */
+
+function formatTimerDisplay(seconds) {
+    seconds = Math.max(0, Math.floor(seconds));
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
 
 function updateTimerDisplay() {
+    if (!timerDisplay) return;
 
-    if (timerEditing) {
-        return;
+    // Only update the input text if the user isn't actively typing in it
+    if (document.activeElement !== timerDisplay) {
+        timerDisplay.value = formatTimerDisplay(timerRemaining);
     }
 
-    const minutes =
-        Math.floor(
-            timerRemaining / 60
-        );
-
-
-    const seconds =
-        Math.floor(
-            timerRemaining % 60
-        );
-
-
-    timerDisplay.textContent =
-        `${minutes
-            .toString()
-            .padStart(2, '0')
-        }:${
-            seconds
-            .toString()
-            .padStart(2, '0')
-        }`;
-
-
     sendTimerUpdate();
-
 }
 
 /* =========================================================
-   EDIT MAIN TIMER BY CLICKING IT
+   EDITABLE INPUT PARSING & HANDLERS
    ========================================================= */
 
-let timerEditing = false;
-
-function startEditingTimer() {
-
-    if (timerEditing) return;
-
-    timerEditing = true;
-
-    const currentDisplay =
-        formatPuzzleTime(timerRemaining);
-
-    const input =
-        document.createElement("input");
-
-    input.id = "timerEditInput";
-    input.type = "text";
-    input.value = currentDisplay;
-    input.maxLength = 8;
-
-    timerDisplay.textContent = "";
-    timerDisplay.appendChild(input);
-
-    timerDisplay.classList.add("editing");
-
-    input.focus();
-    input.select();
-
-
-    function saveTimerEdit() {
-
-        if (!timerEditing) return;
-
-        const value =
-            input.value.trim();
-
-        /*
-         * Accept:
-         *
-         * 45:30
-         * 5:00
-         * 90:15
-         *
-         * Also allow a plain number such as:
-         *
-         * 300
-         *
-         * which means 300 seconds.
-         */
-
-        let newRemaining = null;
-
-        const timeMatch =
-            value.match(/^(\d+):([0-5]\d)$/);
-
-        if (timeMatch) {
-
-            const minutes =
-                parseInt(timeMatch[1], 10);
-
-            const seconds =
-                parseInt(timeMatch[2], 10);
-
-            newRemaining =
-                minutes * 60 + seconds;
-
-        } else if (/^\d+$/.test(value)) {
-
-            newRemaining =
-                parseInt(value, 10);
-
+function parseTimeToSeconds(inputStr) {
+    const cleanStr = inputStr.trim();
+    if (cleanStr.includes(":")) {
+        const parts = cleanStr.split(":");
+        if (parts.length === 2) {
+            const m = parseInt(parts[0], 10);
+            const s = parseInt(parts[1], 10);
+            if (!isNaN(m) && !isNaN(s) && s >= 0 && s < 60 && m >= 0) {
+                return m * 60 + s;
+            }
         }
-
-
-        /*
-         * Invalid input:
-         * restore the original timer.
-         */
-
-        if (
-            newRemaining === null ||
-            !Number.isFinite(newRemaining)
-        ) {
-
-            timerEditing = false;
-
-            timerDisplay.classList.remove("editing");
-
-            updateTimerDisplay();
-
-            return;
+    } else {
+        const val = parseFloat(cleanStr);
+        if (!isNaN(val) && val >= 0) {
+            return Math.round(val * 60);
         }
-
-
-        /*
-         * Set the new timer value.
-         */
-
-        timerRemaining =
-            Math.max(0, newRemaining);
-
-
-        timerEditing = false;
-
-        timerDisplay.classList.remove("editing");
-
-
-        /*
-         * Update the display.
-         */
-
-        updateTimerDisplay();
-
-
-        /*
-         * Broadcast the new timer value
-         * to remote-mode computers.
-         */
-
-        if (!remoteTimerApplying) {
-
-            const state =
-                timerInterval
-                    ? "running"
-                    : "paused";
-
-            broadcastTimerState(state);
-
-        }
-
     }
-
-
-    /*
-     * Enter = save.
-     */
-
-    input.addEventListener(
-        "keydown",
-        event => {
-
-            if (event.key === "Enter") {
-
-                event.preventDefault();
-
-                saveTimerEdit();
-
-            }
-
-            if (event.key === "Escape") {
-
-                timerEditing = false;
-
-                timerDisplay.classList.remove(
-                    "editing"
-                );
-
-                updateTimerDisplay();
-
-            }
-
-        }
-    );
-
-
-    /*
-     * Clicking anywhere else = save.
-     */
-
-    input.addEventListener(
-        "blur",
-        saveTimerEdit
-    );
-
+    return null;
 }
 
+function commitTimerEdit() {
+    if (!timerDisplay) return;
 
-/*
- * Click the timer to edit it.
- */
+    const parsedSeconds = parseTimeToSeconds(timerDisplay.value);
 
-timerDisplay.addEventListener(
-    "click",
-    startEditingTimer
-);
+    if (parsedSeconds !== null) {
+        timerRemaining = parsedSeconds;
+        timerDuration = parsedSeconds; 
+    }
+
+    updateTimerDisplay();
+
+    if (!remoteTimerApplying && typeof broadcastTimerState === "function") {
+        const state = timerInterval ? "running" : "paused";
+        broadcastTimerState(state);
+    }
+}
+
+if (timerDisplay) {
+    timerDisplay.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") timerDisplay.blur();
+        if (e.key === "Escape") {
+            updateTimerDisplay();
+            timerDisplay.blur();
+        }
+    });
+
+    timerDisplay.addEventListener("blur", commitTimerEdit);
+    timerDisplay.addEventListener("focus", () => timerDisplay.select());
+}
 
 /* =========================================================
    TIMER LOOP
    ========================================================= */
 
 function tick(currentTime) {
-
     if (!lastTimestamp) {
-
-        lastTimestamp =
-            currentTime;
-
+        lastTimestamp = currentTime;
     }
 
+    const delta = (currentTime - lastTimestamp) / 1000;
+    lastTimestamp = currentTime;
 
-    const delta =
-        (currentTime -
-            lastTimestamp) / 1000;
-
-
-    lastTimestamp =
-        currentTime;
-
-
-    timerRemaining -=
-        delta * timerSpeed;
-
+    timerRemaining -= delta * timerSpeed;
 
     if (timerRemaining <= 0) {
-
         timerRemaining = 0;
-
-        cancelAnimationFrame(
-            timerInterval
-        );
-
+        cancelAnimationFrame(timerInterval);
         timerInterval = null;
-
     }
-
 
     updateTimerDisplay();
 
-
     if (timerInterval) {
-
-        timerInterval =
-            requestAnimationFrame(
-                tick
-            );
-
+        timerInterval = requestAnimationFrame(tick);
     }
-
 }
-
 
 /* =========================================================
    TIMER CONTROLS
    ========================================================= */
 
 function startTimer() {
-
-    if (timerInterval) return;
+    if (timerInterval || timerRemaining <= 0) return;
 
     lastTimestamp = null;
+    timerInterval = requestAnimationFrame(tick);
 
-    timerInterval =
-        requestAnimationFrame(tick);
-
-    if (!remoteTimerApplying) {
+    if (!remoteTimerApplying && typeof broadcastTimerState === "function") {
         broadcastTimerState("running");
     }
 }
 
-
 function pauseTimer() {
-
-    cancelAnimationFrame(timerInterval);
-
-    timerInterval = null;
+    if (timerInterval) {
+        cancelAnimationFrame(timerInterval);
+        timerInterval = null;
+    }
     lastTimestamp = null;
 
-    if (!remoteTimerApplying) {
+    updateTimerDisplay();
+
+    if (!remoteTimerApplying && typeof broadcastTimerState === "function") {
         broadcastTimerState("paused");
     }
 }
 
-
 function resetTimer() {
-
     pauseTimer();
-
     timerRemaining = timerDuration;
-
     updateTimerDisplay();
 
-    if (!remoteTimerApplying) {
+    if (!remoteTimerApplying && typeof broadcastTimerState === "function") {
         broadcastTimerState("reset");
     }
 }
 
+if (speedSelect) {
+    speedSelect.addEventListener("change", e => {
+        timerSpeed = parseFloat(e.target.value) || 1;
 
-speedSelect.addEventListener(
-    "change",
-    e => {
-
-        timerSpeed =
-            parseFloat(e.target.value);
-
-        if (!remoteTimerApplying) {
-
-            const state =
-                timerInterval
-                    ? "running"
-                    : "paused";
-
+        if (!remoteTimerApplying && typeof broadcastTimerState === "function") {
+            const state = timerInterval ? "running" : "paused";
             broadcastTimerState(state);
         }
-    }
-);
+    });
+}
 
-
-startButton.addEventListener(
-    'click',
-    startTimer
-);
-
-
-pauseButton.addEventListener(
-    'click',
-    pauseTimer
-);
-
-
-resetButton.addEventListener(
-    'click',
-    resetTimer
-);
-
+if (startButton) startButton.addEventListener('click', startTimer);
+if (pauseButton) pauseButton.addEventListener('click', pauseTimer);
+if (resetButton) resetButton.addEventListener('click', resetTimer);
 
 updateTimerDisplay();
 
