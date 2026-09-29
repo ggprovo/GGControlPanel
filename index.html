@@ -1160,7 +1160,107 @@ const rooms = {
             }
         ]
     },
+    reactor2: {
+        name: "Reactor - 2",
 
+        ip1: "10.0.1.157",
+        ip2: "10.0.1.156",
+
+        background: "metal.jpg",
+        puzzles: [
+              {
+                  name: "Coolant Lock",
+                  requires: [],
+                  column: "E"
+              },
+              {
+                  name: "Water Bottle",
+                  requires: [],
+                  column: "F"
+              },
+              {
+                  name: "Fire Box",
+                  requires: ["Water Bottle"],
+                  column: "G"
+              },
+              {
+                  name: "Coin Capsule",
+                  requires: [],
+                  column: "H"
+              },
+              {
+                  name: "Coin Lock",
+                  requires: ["Coin Capsule"],
+                  column: "I"
+              },
+              {
+                  name: "Wire Lock",
+                  requires: ["Fire Box"],
+                  column: "J"
+              },
+              {
+                  name: "Boron Lock",
+                  requires: ["Coolant Lock"],
+                  column: "K"
+              },
+              {
+                  name: "Spare Key",
+                  requires: [],
+                  column: "L"
+              },
+              {
+                  name: "Entered Reactor Chamber",
+                  requires: ["Spare Key", "Boron Lock", "Wire Lock", "Coin Lock"],
+                  column: "M"
+              },
+              {
+                  name: "Take Bolts Off",
+                  requires: ["Entered Reactor Chamber"],
+                  column: "N"
+              },
+              {
+                  name: "Get Final Code",
+                  requires: ["Take Bolts Off"],
+                  column: "O"
+              }
+        ],
+        sounds: [
+            {
+                name: "Coolant Shutdown Switch",
+                file: "coolant.mp3",
+                loop: false,
+                id: 3,
+                pauses: false
+            },
+            {
+                name: "Reactor Shutdown Lever",
+                file: "power_down.mp3",
+                loop: false,
+                id: 2,
+                pauses: false
+            },
+            {
+                name: "10 Minute Timer",
+                file: "timer.mp3",
+                loop: false,
+                pauses: false
+            }
+        ],
+        links: [
+            {
+                link: "https://science-fiction.ambient-mixer.com/gg-reactor-room-ambience",
+                id: 1
+            },
+            {
+                link: "https://science-fiction.ambient-mixer.com/gg-reactor-room-reactor-fx",
+                id: 2
+            },
+            {
+                link: "https://science-fiction.ambient-mixer.com/gg-reactor-room-coolant-fx",
+                id: 3
+            }
+        ]
+    },
 
     egyptian: {
         name: "Egyptian",
@@ -3661,6 +3761,13 @@ window.submitRoomData = submitRoomData;
             onclick="selectRoom('reactor')"
         >
             REACTOR
+        </button>
+
+        <button
+            class="roomButton"
+            onclick="selectRoom('reactor2')"
+        >
+            REACTOR - 2
         </button>
 
 
