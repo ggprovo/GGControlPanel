@@ -1043,7 +1043,37 @@ const rooms = {
         links: []
     },
 
+    radio: {
+        name: "Radio",
 
+        ip1: "10.0.1.0",
+        ip2: "10.0.1.0",
+
+        background: "lasers.jpg",
+        puzzles: [
+              {
+                  name: "Room Report",
+                  requires: [],
+                  column: "E"
+              }
+        ],
+        sounds: [
+            {
+                name: "Monster",
+                file: "monstercry.wav",
+                loop: false,
+                pauses: true
+            },
+            {
+                name: "Alarm",
+                file: "alarm.mp3",
+                loop: true,
+                pauses: false
+            }
+        ],
+        links: []
+    },
+  
     reactor: {
         name: "Reactor",
 
@@ -3776,6 +3806,13 @@ window.submitRoomData = submitRoomData;
             onclick="selectRoom('egyptian')"
         >
             EGYPTIAN
+        </button>
+
+        <button
+            class="roomButton"
+            onclick="selectRoom('radio')"
+        >
+            RADIO
         </button>
 
     </div>
