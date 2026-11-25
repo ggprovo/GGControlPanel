@@ -177,6 +177,57 @@ body {
   width: 40vw;
 }
 
+/* =========================================================
+   RADIO VOLUME PANEL
+   ========================================================= */
+
+#volumePanel {
+  left: 10px;
+  top: 220px;
+  width: min(420px, 45vw);
+  display: none;
+}
+
+#volumeContainer {
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 0 0 12px 12px;
+  padding: 14px;
+  color: white;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+.volumeItem {
+  margin-bottom: 18px;
+}
+
+.volumeItem:last-child {
+  margin-bottom: 0;
+}
+
+.volumeItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+  font-weight: bold;
+}
+
+.volumeValue {
+  color: #60A080;
+  min-width: 42px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.volumeItem input[type="range"] {
+  display: block;
+  width: 100%;
+  accent-color: #60A080;
+  cursor: pointer;
+}
+
 .cameraContainer {
   position: relative;
   width: 100%;
@@ -809,6 +860,28 @@ a#toggleControls {
      AUDIO PANEL MOBILE FIX
      --------------------------------------------------------- */
 
+  #volumePanel {
+    width: 92vw !important;
+    margin: 15px auto !important;
+  }
+
+  #volumeContainer {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #volumeContainer .volumeItem {
+    margin-bottom: 22px !important;
+  }
+
+  #volumeContainer .volumeItemHeader {
+    font-size: 1.35rem !important;
+  }
+
+  #volumeContainer input[type="range"] {
+    height: 28px !important;
+  }
+
   #audioPlayer {
     max-height: none !important;
     height: auto !important;
@@ -1063,6 +1136,20 @@ const rooms = {
                 file: "monstercry.wav",
                 loop: false,
                 pauses: true
+            },
+            {
+                name: "Background 1",
+                file: "bg1.mp3",
+                loop: true,
+                pauses: false,
+                background: true
+            },
+            {
+                name: "Background 2",
+                file: "bg2.mp3",
+                loop: true,
+                pauses: false,
+                background: true
             },
             {
                 name: "Track Tape",
@@ -1819,11 +1906,19 @@ async function selectRoom(roomKey) {
 
     loadAudio(room);
 
-    /* If on mobile, hide all non-essential panels */
+    const isRadioRoom = roomKey === "radio";
+
+    // Radio uses the Volume panel in place of both camera panels.
+    document.getElementById("cameraPanel1").style.display =
+        !isRadioRoom && !isMobile ? "block" : "none";
+    document.getElementById("cameraPanel2").style.display =
+        !isRadioRoom && !isMobile ? "block" : "none";
+    document.getElementById("volumePanel").style.display =
+        isRadioRoom ? "block" : "none";
+
+    /* If on mobile, hide all other non-essential panels. */
     if (isMobile) {
         document.getElementById("timerPanel").style.display = "none";
-        document.getElementById("cameraPanel1").style.display = "none";
-        document.getElementById("cameraPanel2").style.display = "none";
         document.getElementById("puzzlePanel").style.display = "none";
         document.getElementById("submitPanel").style.display = "none";
 
@@ -1833,13 +1928,206 @@ async function selectRoom(roomKey) {
         document.getElementById("mummyPanel").style.display =
             roomKey === "egyptian" ? "block" : "none";
         resetPuzzles();
-        startViewer();
+
+        // The Radio room has no camera feeds to initialize.
+        if (!isRadioRoom) {
+            startViewer();
+        }
     }
+
+    // Rebuild the room-specific volume sliders after its audio elements exist.
+    loadVolumeControls(room);
 }
 
 /* =========================================================
    AUDIO
    ========================================================= */
+
+function loadVolumeControls(room) {
+
+    const volumeContainer =
+        document.getElementById("volumeContainer");
+
+    if (!volumeContainer) return;
+
+    volumeContainer.innerHTML = "";
+
+    // The volume panel is currently intended for the Radio room.
+    if (currentRoom !== "radio") return;
+
+    room.sounds.forEach((sound, index) => {
+
+        const item = document.createElement("div");
+        item.className = "volumeItem";
+
+        const header = document.createElement("div");
+        header.className = "volumeItemHeader";
+
+        const name = document.createElement("span");
+        name.textContent = sound.name;
+
+        const value = document.createElement("span");
+        value.className = "volumeValue";
+        value.textContent = "100%";
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = "0";
+        slider.max = "100";
+        slider.step = "1";
+        slider.value = "100";
+        slider.setAttribute("aria-label", sound.name + " volume");
+
+        slider.dataset.audioIndex = String(index);
+
+        slider.addEventListener("input", () => {
+            const audio = document.querySelectorAll("#audioPlayer audio")[index];
+            if (!audio) return;
+
+            const volume = Number(slider.value) / 100;
+            const fadeMultiplier = getAudioFadeMultiplier(audio);
+
+            // The slider represents the audible volume. Convert it back
+            // to the track's normal/base volume while a fade is active.
+            const baseVolume = fadeMultiplier > 0
+                ? Math.min(1, volume / fadeMultiplier)
+                : volume;
+
+            audio.dataset.baseVolume = String(baseVolume);
+            audio.volume = Math.max(0, Math.min(1, baseVolume * fadeMultiplier));
+            updateVolumeControl(audio);
+        });
+
+        header.appendChild(name);
+        header.appendChild(value);
+        item.appendChild(header);
+        item.appendChild(slider);
+        volumeContainer.appendChild(item);
+    });
+}
+
+
+/*
+ * Background audio mixing
+ *
+ * Each track keeps its own base volume. Fades and monster ducking
+ * are multipliers, so changing a Volume slider during a fade still
+ * updates the volume that will be restored afterward.
+ */
+const AUDIO_FADE_MS = 900;
+const MONSTER_DUCK_MS = 1100;
+let monsterAudioPlaying = false;
+let activeBackgroundAudio = null;
+
+function getAudioFadeMultiplier(audio) {
+    return Number(audio.dataset.fadeMultiplier || "1");
+}
+
+function updateVolumeControl(audio) {
+    if (!audio) return;
+
+    const index = audio.dataset.volumeIndex;
+    if (index === undefined) return;
+
+    const slider = document.querySelector(
+        `#volumeContainer input[type="range"][data-audio-index="${index}"]`
+    );
+    if (!slider) return;
+
+    const item = slider.closest(".volumeItem");
+    const value = item ? item.querySelector(".volumeValue") : null;
+    const audibleVolume = Math.round(audio.volume * 100);
+
+    slider.value = String(audibleVolume);
+    if (value) value.textContent = audibleVolume + "%";
+}
+
+function fadeAudio(audio, targetMultiplier, duration = AUDIO_FADE_MS, onComplete = null) {
+    if (!audio) {
+        if (onComplete) onComplete();
+        return;
+    }
+
+    if (audio._fadeInterval) {
+        clearInterval(audio._fadeInterval);
+        audio._fadeInterval = null;
+    }
+
+    const startMultiplier = getAudioFadeMultiplier(audio);
+    const startTime = performance.now();
+
+    const apply = () => {
+        const progress = Math.min(1, (performance.now() - startTime) / duration);
+        const eased = progress * progress * (3 - 2 * progress);
+        const multiplier = startMultiplier + (targetMultiplier - startMultiplier) * eased;
+
+        audio.dataset.fadeMultiplier = String(multiplier);
+        const baseVolume = Number(audio.dataset.baseVolume || "1");
+        audio.volume = Math.max(0, Math.min(1, baseVolume * multiplier));
+        updateVolumeControl(audio);
+
+        if (progress >= 1) {
+            clearInterval(audio._fadeInterval);
+            audio._fadeInterval = null;
+            audio.dataset.fadeMultiplier = String(targetMultiplier);
+            if (onComplete) onComplete();
+        }
+    };
+
+    if (duration <= 0) {
+        audio.dataset.fadeMultiplier = String(targetMultiplier);
+        audio.volume = Number(audio.dataset.baseVolume || "1") * targetMultiplier;
+        updateVolumeControl(audio);
+        if (onComplete) onComplete();
+        return;
+    }
+
+    audio._fadeInterval = setInterval(apply, 20);
+    apply();
+}
+
+function getBackgroundAudios() {
+    return Array.from(document.querySelectorAll("#audioPlayer audio"))
+        .filter(audio => audio.dataset.background === "true");
+}
+
+function duckBackgroundAudios() {
+    getBackgroundAudios().forEach(audio => {
+        if (!audio.paused) {
+            fadeAudio(audio, 0, MONSTER_DUCK_MS);
+        }
+    });
+}
+
+function restoreBackgroundAudios() {
+    getBackgroundAudios().forEach(audio => {
+        if (!audio.paused) {
+            fadeAudio(audio, 1, MONSTER_DUCK_MS);
+        }
+    });
+}
+
+function switchBackgroundAudio(selectedAudio) {
+    activeBackgroundAudio = selectedAudio;
+
+    getBackgroundAudios().forEach(other => {
+        if (other === selectedAudio || other.paused) return;
+
+        // Fade the previous background out, then pause it without
+        // resetting its playback position.
+        fadeAudio(other, 0, AUDIO_FADE_MS, () => {
+            if (!other.paused) other.pause();
+        });
+    });
+
+    // If the monster is playing, keep the newly selected background
+    // silent until the monster finishes.
+    fadeAudio(
+        selectedAudio,
+        monsterAudioPlaying ? 0 : 1,
+        AUDIO_FADE_MS
+    );
+}
 
 function loadAudio(room) {
 
@@ -1873,6 +2161,13 @@ function loadAudio(room) {
         audio.dataset.pauses =
             sound.pauses;
 
+        audio.dataset.background =
+            sound.background === true ? "true" : "false";
+
+        audio.dataset.baseVolume = "1";
+        audio.dataset.fadeMultiplier = "1";
+        audio.dataset.volumeIndex = String(index);
+
         audio.dataset.ignorePause =
             "false";
 
@@ -1890,6 +2185,13 @@ function loadAudio(room) {
          */
 
         audio.addEventListener("play", () => {
+
+            if (audio.dataset.background === "true") {
+                switchBackgroundAudio(audio);
+            } else if (sound.name === "Monster") {
+                monsterAudioPlaying = true;
+                duckBackgroundAudios();
+            }
 
             /*
              * Stop other sounds that should be stopped
@@ -2009,16 +2311,38 @@ function loadAudio(room) {
 
 
             /*
-             * This was a REAL local pause.
-             * Reset track position to beginning.
+             * Ordinary sound effects restart from the beginning
+             * when paused. Background tracks keep their position.
              */
-            audio.currentTime = 0;
+            if (audio.dataset.background !== "true") {
+                audio.currentTime = 0;
+            }
+
+            if (audio.dataset.background === "true" && activeBackgroundAudio === audio) {
+                activeBackgroundAudio = null;
+            }
 
             broadcastAudio(
                 "pause",
                 index
             );
 
+        });
+
+        // Restore the background mix as soon as the monster sound ends.
+        audio.addEventListener("ended", () => {
+            if (sound.name === "Monster") {
+                monsterAudioPlaying = false;
+                restoreBackgroundAudios();
+            }
+        });
+
+        // Also restore if the monster is manually paused or stopped.
+        audio.addEventListener("pause", () => {
+            if (sound.name === "Monster" && monsterAudioPlaying) {
+                monsterAudioPlaying = false;
+                restoreBackgroundAudios();
+            }
         });
 
 
@@ -3364,6 +3688,7 @@ function initDragging() {
         "timerPanel",
         "cameraPanel1",
         "cameraPanel2",
+        "volumePanel",
         "audioPanel",
         "puzzlePanel",
         "submitPanel",
@@ -4017,6 +4342,24 @@ window.submitRoomData = submitRoomData;
           </table>
 
         </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         RADIO VOLUME
+         =================================================== -->
+
+    <div
+        id="volumePanel"
+        class="draggablePanel"
+    >
+
+        <div class="dragHandle">
+            VOLUME
+        </div>
+
+        <div id="volumeContainer"></div>
 
     </div>
 
