@@ -1125,9 +1125,84 @@ const rooms = {
         background: "lasers.jpg",
         puzzles: [
               {
-                  name: "Room Report",
+                  name: "TONES Lock",
                   requires: [],
                   column: "E"
+              },
+              {
+                  name: "Toolbox - 7439",
+                  requires: [],
+                  column: "F"
+              },
+              {
+                  name: "Tune Radio",
+                  requires: [],
+                  column: "G"
+              },
+              {
+                  name: "DEAD Lock",
+                  requires: ["Tune Radio"],
+                  column: "H"
+              },
+              {
+                  name: "Play Master Tape",
+                  requires: ["Toolbox - 7439"],
+                  column: "I"
+              },
+              {
+                  name: "417 Lock",
+                  requires: ["Play Master Tape"],
+                  column: "J"
+              },
+              {
+                  name: "Place Record On Player",
+                  requires: ["417 Lock"],
+                  column: "K"
+              },
+              {
+                  name: "Fill Pipe With Water",
+                  requires: [],
+                  column: "L"
+              },
+              {
+                  name: "2820 Lock",
+                  requires: ["Fill Pipe With Water"],
+                  column: "M"
+              },
+              {
+                  name: "Turn On Laser Puzzle",
+                  requires: ["TONES Lock"],
+                  column: "N"
+              },
+              {
+                  name: "Complete Laser Puzzle",
+                  requires: ["Turn On Laser Puzzle"],
+                  column: "O"
+              },
+              {
+                  name: "DK332 Lock",
+                  requires: ["Complete Laser Puzzle"],
+                  column: "P"
+              },
+              {
+                  name: "BLAND Lock",
+                  requires: ["Place Record On Player"],
+                  column: "Q"
+              },
+              {
+                  name: "Ricky Takes Over",
+                  requires: ["2820 Lock", "DEAD Lock", "BLAND Lock"],
+                  column: "R"
+              },
+              {
+                  name: "Place All Blocks",
+                  requires: ["Ricky Takes Over"],
+                  column: "S"
+              },
+              {
+                  name: "8314 In Soundboard",
+                  requires: ["Place All Blocks"],
+                  column: "T"
               }
         ],
         sounds: [
@@ -1135,40 +1210,55 @@ const rooms = {
                 name: "Monster",
                 file: "feddbackmonstercrynew.wav",
                 loop: false,
-                pauses: true
+                pauses: true,
+                monster: true,
+                volume: 100
+            },
+            {
+                name: "Let Me Out",
+                file: "letmeout.mp3",
+                loop: false,
+                pauses: true,
+                monster: true,
+                volume: 100
             },
             {
                 name: "Background Music",
                 file: "bg.mp3",
                 loop: true,
                 pauses: false,
-                background: true
+                background: true,
+                volume: 10
             },
             {
                 name: "Ricky's Plan",
                 file: "rickyplan.mp3",
                 loop: true,
                 pauses: false,
-                background: true
+                background: true,
+                volume: 75
             },
             {
                 name: "Finale",
                 file: "finale.mp3",
                 loop: true,
                 pauses: false,
-                background: true
+                background: true,
+                volume: 75
             },
             {
                 name: "Track Tape",
                 file: "tracktape.wav",
                 loop: false,
-                pauses: false
+                pauses: false,
+                volume: 100
             },
             {
                 name: "Master Tape",
                 file: "MasterTapeAudio.mp3",
                 loop: false,
-                pauses: false
+                pauses: false,
+                volume: 100
             }
         ],
         links: []
@@ -1975,14 +2065,22 @@ function loadVolumeControls(room) {
 
         const value = document.createElement("span");
         value.className = "volumeValue";
-        value.textContent = "100%";
+
+        const presetVolume = Math.max(
+            0,
+            Math.min(100, Number.isFinite(Number(sound.volume))
+                ? Number(sound.volume)
+                : 100)
+        );
+
+        value.textContent = Math.round(presetVolume) + "%";
 
         const slider = document.createElement("input");
         slider.type = "range";
         slider.min = "0";
         slider.max = "100";
         slider.step = "1";
-        slider.value = "100";
+        slider.value = String(presetVolume);
         slider.setAttribute("aria-label", sound.name + " volume");
 
         slider.dataset.audioIndex = String(index);
@@ -2171,9 +2269,17 @@ function loadAudio(room) {
         audio.dataset.background =
             sound.background === true ? "true" : "false";
 
-        audio.dataset.baseVolume = "1";
+        const presetVolume = Math.max(
+            0,
+            Math.min(100, Number.isFinite(Number(sound.volume))
+                ? Number(sound.volume)
+                : 100)
+        ) / 100;
+
+        audio.dataset.baseVolume = String(presetVolume);
         audio.dataset.fadeMultiplier = "1";
         audio.dataset.volumeIndex = String(index);
+        audio.volume = presetVolume;
 
         audio.dataset.ignorePause =
             "false";
@@ -2195,7 +2301,7 @@ function loadAudio(room) {
 
             if (audio.dataset.background === "true") {
                 switchBackgroundAudio(audio);
-            } else if (sound.name === "Monster") {
+            } else if (sound.monster === true) {
                 monsterAudioPlaying = true;
                 duckBackgroundAudios();
             }
@@ -2338,7 +2444,7 @@ function loadAudio(room) {
 
         // Restore the background mix as soon as the monster sound ends.
         audio.addEventListener("ended", () => {
-            if (sound.name === "Monster") {
+            if (sound.monster === true) {
                 monsterAudioPlaying = false;
                 restoreBackgroundAudios();
             }
@@ -2346,7 +2452,7 @@ function loadAudio(room) {
 
         // Also restore if the monster is manually paused or stopped.
         audio.addEventListener("pause", () => {
-            if (sound.name === "Monster" && monsterAudioPlaying) {
+            if (sound.monster === true && monsterAudioPlaying) {
                 monsterAudioPlaying = false;
                 restoreBackgroundAudios();
             }
