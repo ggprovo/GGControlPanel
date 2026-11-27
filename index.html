@@ -125,8 +125,15 @@ body {
 
 #timerPanel {
   left: calc(50% - 160px);
+  right: auto;
   top: 30px;
   width: 320px;
+}
+
+/* Radio layout: timer sits left of Audio Controls, which sits left of Backup Tapes. */
+#controller.radio-room #timerPanel {
+  left: auto;
+  right: 680px;
 }
 
 #timerContainer {
@@ -182,9 +189,11 @@ body {
    ========================================================= */
 
 #volumePanel {
-  left: 10px;
-  top: 220px;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: min(420px, 45vw);
+  padding: 14px 0 14px 14px;
   display: none;
 }
 
@@ -193,7 +202,8 @@ body {
   border-radius: 0 0 12px 12px;
   padding: 14px;
   color: white;
-  max-height: calc(100vh - 280px);
+  height: calc(100% - 34px);
+  max-height: none;
   overflow-y: auto;
 }
 
@@ -278,9 +288,13 @@ body {
    ========================================================= */
 
 #audioPanel {
-  right: 350px;
+  right: 20px;
   top: 30px;
   width: 300px;
+}
+
+#controller.radio-room #audioPanel {
+  right: 350px;
 }
 
 #audioPlayer,
@@ -324,7 +338,11 @@ body {
 #puzzlePanel {
   width: 320px;
   bottom: 30px;
-  right: 10px;
+  right: 350px;
+}
+
+#controller.radio-room #puzzlePanel {
+  right: 680px;
 }
 
 #puzzleContainer {
@@ -2017,6 +2035,7 @@ async function selectRoom(roomKey) {
     loadAudio(room);
 
     const isRadioRoom = roomKey === "radio";
+    document.getElementById("controller").classList.toggle("radio-room", isRadioRoom);
 
     // Radio uses the Volume panel in place of both camera panels.
     document.getElementById("cameraPanel1").style.display =
@@ -2028,16 +2047,8 @@ async function selectRoom(roomKey) {
     document.getElementById("backupPanel").style.display =
         isRadioRoom ? "block" : "none";
 
-    const puzzlePanel = document.getElementById("puzzlePanel");
-    if (isRadioRoom && !isMobile) {
-        puzzlePanel.style.left = "50%";
-        puzzlePanel.style.right = "auto";
-        puzzlePanel.style.transform = "translateX(-50%)";
-    } else {
-        puzzlePanel.style.left = "auto";
-        puzzlePanel.style.right = "10px";
-        puzzlePanel.style.transform = "none";
-    }
+    // Keep the puzzle panel aligned beneath the timer panel. Avoid transforms
+    // here so the draggable panel can calculate its position reliably.
 
     /* If on mobile, hide all other non-essential panels. */
     if (isMobile) {
