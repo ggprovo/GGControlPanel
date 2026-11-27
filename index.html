@@ -278,18 +278,25 @@ body {
    ========================================================= */
 
 #audioPanel {
-  right: 20px;
+  right: 350px;
   top: 30px;
   width: 300px;
 }
 
-#audioPlayer {
+#audioPlayer,
+#backupAudioPlayer {
   background-color: black;
   border-radius: 0 0 12px 12px;
   padding: 12px;
   width: 100%;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+}
+
+#backupPanel {
+  right: 20px;
+  top: 30px;
+  width: 300px;
 }
 
 .audioItem {
@@ -914,7 +921,8 @@ a#toggleControls {
   }
 
   .audioItem audio,
-  #audioPlayer audio {
+  #audioPlayer audio,
+  #backupAudioPlayer audio {
     display: block !important;
     width: 100% !important;
     min-width: 100% !important;
@@ -1251,15 +1259,22 @@ const rooms = {
                 file: "tracktape.wav",
                 loop: false,
                 pauses: false,
-                volume: 100
+                volume: 100,
+                panel: "backup"
             },
             {
                 name: "Master Tape",
                 file: "MasterTapeAudio.mp3",
                 loop: false,
                 pauses: false,
-                volume: 100
-            }
+                volume: 100,
+                panel: "backup"
+            },
+            { name: "2139 Sound Bite", file: "2139 Sound Bite.mp3", loop: false, pauses: false, volume: 100, panel: "backup" },
+            { name: "Graveyard Shift", file: "Graveyard Shift.mp3", loop: false, pauses: false, volume: 100, panel: "backup" },
+            { name: "Project Echo", file: "Project Echo.mp3", loop: false, pauses: false, volume: 100, panel: "backup" },
+            { name: "The Feedback", file: "The Feedback.mp3", loop: false, pauses: false, volume: 100, panel: "backup" },
+            { name: "To Helen", file: "To Helen.mp3", loop: false, pauses: false, volume: 100, panel: "backup" }
         ],
         links: []
     },
@@ -1898,11 +1913,9 @@ function handleRemoteAudioCommand(command) {
     // NORMAL ROOM AUDIO
     // ============================
 
-    const audioElements =
-        document.querySelectorAll("#audioPlayer audio");
-
-    const audio =
-        audioElements[command.soundIndex];
+    const audio = document.querySelector(
+        `[data-sound-index="${command.soundIndex}"]`
+    );
 
     if (!audio) {
         console.warn(
@@ -2012,6 +2025,19 @@ async function selectRoom(roomKey) {
         !isRadioRoom && !isMobile ? "block" : "none";
     document.getElementById("volumePanel").style.display =
         isRadioRoom ? "block" : "none";
+    document.getElementById("backupPanel").style.display =
+        isRadioRoom ? "block" : "none";
+
+    const puzzlePanel = document.getElementById("puzzlePanel");
+    if (isRadioRoom && !isMobile) {
+        puzzlePanel.style.left = "50%";
+        puzzlePanel.style.right = "auto";
+        puzzlePanel.style.transform = "translateX(-50%)";
+    } else {
+        puzzlePanel.style.left = "auto";
+        puzzlePanel.style.right = "10px";
+        puzzlePanel.style.transform = "none";
+    }
 
     /* If on mobile, hide all other non-essential panels. */
     if (isMobile) {
@@ -2086,7 +2112,7 @@ function loadVolumeControls(room) {
         slider.dataset.audioIndex = String(index);
 
         slider.addEventListener("input", () => {
-            const audio = document.querySelectorAll("#audioPlayer audio")[index];
+            const audio = document.querySelector(`[data-sound-index="${index}"]`);
             if (!audio) return;
 
             const volume = Number(slider.value) / 100;
@@ -2192,7 +2218,7 @@ function fadeAudio(audio, targetMultiplier, duration = AUDIO_FADE_MS, onComplete
 }
 
 function getBackgroundAudios() {
-    return Array.from(document.querySelectorAll("#audioPlayer audio"))
+    return Array.from(document.querySelectorAll("#audioPlayer audio, #backupAudioPlayer audio"))
         .filter(audio => audio.dataset.background === "true");
 }
 
@@ -2240,6 +2266,7 @@ function loadAudio(room) {
         document.getElementById("audioPlayer");
 
     audioPlayer.innerHTML = "";
+    document.getElementById("backupAudioPlayer").innerHTML = "";
 
 
     room.sounds.forEach((sound, index) => {
@@ -2279,6 +2306,7 @@ function loadAudio(room) {
         audio.dataset.baseVolume = String(presetVolume);
         audio.dataset.fadeMultiplier = "1";
         audio.dataset.volumeIndex = String(index);
+        audio.dataset.soundIndex = String(index);
         audio.volume = presetVolume;
 
         audio.dataset.ignorePause =
@@ -2311,7 +2339,7 @@ function loadAudio(room) {
              * when this one starts.
              */
             document
-                .querySelectorAll("#audioPlayer audio")
+                .querySelectorAll("#audioPlayer audio, #backupAudioPlayer audio")
                 .forEach(other => {
 
                     if (
@@ -2462,7 +2490,10 @@ function loadAudio(room) {
         item.appendChild(caption);
         item.appendChild(audio);
 
-        audioPlayer.appendChild(item);
+        const targetPlayer = sound.panel === "backup"
+            ? document.getElementById("backupAudioPlayer")
+            : audioPlayer;
+        targetPlayer.appendChild(item);
 
     });
 
@@ -3803,6 +3834,7 @@ function initDragging() {
         "cameraPanel2",
         "volumePanel",
         "audioPanel",
+        "backupPanel",
         "puzzlePanel",
         "submitPanel",
         "mummyPanel"
@@ -4493,6 +4525,11 @@ window.submitRoomData = submitRoomData;
 
         <div id="audioPlayer"></div>
 
+    </div>
+
+    <div id="backupPanel" class="draggablePanel" style="display:none;">
+        <div class="dragHandle">BACKUP TAPES</div>
+        <div id="backupAudioPlayer"></div>
     </div>
 
   <!-- ===================================================
